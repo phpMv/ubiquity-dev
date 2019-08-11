@@ -45,7 +45,7 @@ class YumlModelsCreator extends ModelsCreator {
 		return $this->yumlParser->getPrimaryKeys ( $tableName );
 	}
 
-	protected function getForeignKeys($tableName, $pkName) {
+	protected function getForeignKeys($tableName, $pkName,$dbName=null) {
 		return $this->yumlParser->getForeignKeys ( $tableName );
 	}
 }

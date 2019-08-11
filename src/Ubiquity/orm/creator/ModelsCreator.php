@@ -28,7 +28,7 @@ abstract class ModelsCreator {
 
 	abstract protected function getPrimaryKeys($tableName);
 
-	abstract protected function getForeignKeys($tableName, $pkName);
+	abstract protected function getForeignKeys($tableName, $pkName,$dbName=null);
 
 	protected function init($config, $offset = 'default') {
 		$this->config = DAO::getDbOffset ( $config, $offset );
@@ -93,7 +93,7 @@ abstract class ModelsCreator {
 		foreach ( $this->classes as $table => $class ) {
 			$keys = $this->getPrimaryKeys ( $table );
 			foreach ( $keys as $key ) {
-				$fks = $this->getForeignKeys ( $table, $key );
+				$fks = $this->getForeignKeys ( $table, $key,$this->config['dbName']??'' );
 				foreach ( $fks as $fk ) {
 					$field = \lcfirst ( $table );
 					$fkTable = $fk ["TABLE_NAME"];
