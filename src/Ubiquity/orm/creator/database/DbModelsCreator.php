@@ -23,11 +23,11 @@ class DbModelsCreator extends ModelsCreator {
 
 	protected function init($config, $offset = 'default') {
 		parent::init ( $config, $offset );
-		$this->connect ( $this->config,$offset );
+		$this->connect ( $this->config );
 	}
 
-	private function connect($dbConfig,$offset) {
-		$this->database=new Database($offset ?? 'default', $dbConfig ['wrapper'] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $dbConfig ['type'], $dbConfig ['dbName'], $dbConfig ['serverName'] ?? '127.0.0.1', $dbConfig ['port'] ?? 3306, $dbConfig ['user'] ?? 'root', $dbConfig ['password'] ?? '', $dbConfig ['options'] ?? [ ], $dbConfig ['cache'] ?? false);
+	private function connect($dbConfig) {
+		$this->database=new Database($dbConfig ['wrapper'] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $dbConfig ['type'], $dbConfig ['dbName'], $dbConfig ['serverName'] ?? '127.0.0.1', $dbConfig ['port'] ?? 3306, $dbConfig ['user'] ?? 'root', $dbConfig ['password'] ?? '', $dbConfig ['options'] ?? [ ], $dbConfig ['cache'] ?? false);
 		$this->database->connect();
 	}
 
