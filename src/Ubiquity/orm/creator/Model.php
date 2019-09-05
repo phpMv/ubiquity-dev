@@ -14,10 +14,12 @@ namespace Ubiquity\orm\creator;
 class Model {
 	private $members;
 	private $name;
+	private $table;
 	private $namespace;
 	private $database;
 
 	public function __construct($name, $namespace = "models") {
+		$this->table=$name;
 		$this->name = \ucfirst ( $name );
 		$this->members = array ();
 		$this->namespace = $namespace;
@@ -62,6 +64,9 @@ class Model {
 		}
 		if ($this->database != null && $this->database !== 'default') {
 			$result .= $this->getAnnotation ( "database('{$this->database}')" );
+		}
+		if($this->table!==$this->name){
+			$result .= $this->getAnnotation ( "table('{$this->table}')" );
 		}
 		$result .= "class " . ucfirst ( $this->name ) . "{";
 		$members = $this->members;
