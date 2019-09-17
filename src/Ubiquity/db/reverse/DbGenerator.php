@@ -7,6 +7,14 @@ use Ubiquity\orm\OrmUtils;
 use Ubiquity\cache\ClassUtils;
 use Ubiquity\db\utils\DbTypes;
 
+/**
+ * Ubiquity\db\reverse$DbGenerator
+ * This class is part of Ubiquity
+ * @author jcheron <myaddressmail@gmail.com>
+ * @version 1.0.0
+ * @package ubiquity.dev
+ *
+ */
 class DbGenerator {
 	protected $nameProtection;
 	protected $createDatabaseMask;

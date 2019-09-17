@@ -9,6 +9,7 @@ namespace Ubiquity\orm\creator;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.1
+ * @package ubiquity.dev
  *
  */
 class Model {

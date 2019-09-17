@@ -5,6 +5,14 @@ namespace Ubiquity\orm\reverse;
 use Ubiquity\orm\OrmUtils;
 use Ubiquity\db\reverse\DbGenerator;
 
+/**
+ * Ubiquity\orm\reverse$TableReversor
+ * This class is part of Ubiquity
+ * @author jcheron <myaddressmail@gmail.com>
+ * @version 1.0.0
+ * @package ubiquity.dev
+ *
+ */
 class TableReversor {
 	private $model;
 	private $fkFieldsToAdd=[];

@@ -15,6 +15,7 @@ use Ubiquity\orm\DAO;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.2
+ * @package ubiquity.dev
  *
  */
 abstract class ModelsCreator {

@@ -2,6 +2,14 @@
 
 namespace Ubiquity\controllers\admin\popo;
 
+/**
+ * Ubiquity\controllers\admin\popo$Route
+ * This class is part of Ubiquity
+ * @author jcheron <myaddressmail@gmail.com>
+ * @version 1.0.0
+ * @package ubiquity.dev
+ *
+ */
 class Route {
 	private $path;
 	private $controller;

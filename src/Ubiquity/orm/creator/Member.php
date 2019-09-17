@@ -11,6 +11,14 @@ use Ubiquity\annotations\JoinColumnAnnotation;
 use Ubiquity\annotations\ColumnAnnotation;
 use Ubiquity\contents\validation\ValidationModelGenerator;
 
+/**
+ * Ubiquity\orm\creator$Member
+ * This class is part of Ubiquity
+ * @author jcheron <myaddressmail@gmail.com>
+ * @version 1.0.0
+ * @package ubiquity.dev
+ *
+ */
 class Member {
 	private $name;
 	private $primary;

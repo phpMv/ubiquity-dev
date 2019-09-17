@@ -12,6 +12,7 @@ use Ubiquity\db\Database;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.2
+ * @package ubiquity.dev
  *
  */
 class DbModelsCreator extends ModelsCreator {

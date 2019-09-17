@@ -19,6 +19,7 @@ use Ubiquity\utils\base\CodeUtils;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.4
+ * @package ubiquity.dev
  *
  */
 abstract class ScaffoldController {
