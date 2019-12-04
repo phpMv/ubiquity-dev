@@ -6,8 +6,8 @@
 		"php",
 		"framework",
 		"mvc",
-		"orm",
 		"tools",
+		"mailer",
 		"php-framework"
 	],
 	"require" : {
