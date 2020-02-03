@@ -17,8 +17,12 @@ class %classname% extends %extendsOrImplements% {
 		return 'Message text';
 	}
 
-	public function __construct() {
-		parent::__construct();
+	/**
+	 *
+	 * {@inheritdoc}
+	 * @see \Ubiquity\mailer\AbstractMail::initialize()
+	 */
+	protected function initialize(){
 		$this->subject = 'Message title';
 		$this->from(MailerManager::loadConfig()['from']??'from@organization');
 		//$this->to($to);
