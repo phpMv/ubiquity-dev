@@ -189,9 +189,9 @@ class Model {
 	public function getToString() {
 		$field = $this->getToStringField();
 		if (isset($field)) {
-			$corps = '$this->' . $field;
+			$corps = '($this->' . $field . "??'no value').''";
 		} elseif (($pkName = $this->getPkName()) !== null) {
-			$corps = '$this->' . $pkName . "??'no value'";
+			$corps = '$this->' . $pkName . ".''";
 		} else {
 			$corps = '"' . $this->name . '@"' . '.\spl_object_hash($this)';
 		}
