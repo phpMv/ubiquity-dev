@@ -1,87 +1,98 @@
 <?php
-
 namespace Ubiquity\controllers\admin\popo;
 
 /**
  * Ubiquity\controllers\admin\popo$Route
  * This class is part of Ubiquity
+ *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
  * @package ubiquity.dev
  *
  */
 class Route {
+
 	private $path;
+
 	private $controller;
+
 	private $action;
-	private $parameters=[];
+
+	private $parameters = [];
+
 	private $cache;
+
 	private $duration;
+
 	private $name;
+
 	private $methods;
+
 	private $id;
+
 	private $messages;
 
-	public function __construct($path="",$array=[]){
-		if(isset($array['controller'])){
-			$this->messages=[];
-			$this->path=$path;
-			$this->methods=$array['methods']??'';
+	public function __construct($path = "", $array = []) {
+		if (isset($array['controller'])) {
+			$this->messages = [];
+			$this->path = $path;
+			$this->methods = $array['methods'] ?? '';
 			$this->fromArray($array);
-			$this->id=\uniqid();
+			$this->id = \uniqid();
 		}
 	}
-	
-	private static function mergeRouteArray($routeArrays){
-		$response=[];
-		foreach ($routeArrays as $method=>$route){
-			$routeName=$route['name'];
-			if(!isset($response[$routeName])){
-				$response[$routeName]=$route;
+
+	private static function mergeRouteArray($routeArrays) {
+		$response = [];
+		foreach ($routeArrays as $method => $route) {
+			$routeName = $route['name'];
+			if (! isset($response[$routeName])) {
+				$response[$routeName] = $route;
 			}
-			$response[$routeName]['methods'][]=$method;
+			$response[$routeName]['methods'][] = $method;
 		}
 		return $response;
 	}
 
-	private function fromArray($array){
-		$this->controller=$array["controller"];
-		$this->action=$array["action"];
-		$this->name=isset($array["name"])?$array["name"]:'';
-		$this->cache=isset($array["cache"])?$array["cache"]:false;
-		$this->duration=isset($array["duration"])?$array["duration"]:false;
-		if(isset($array["parameters"]) && \sizeof($array["parameters"])>0){
-			if(\class_exists($this->controller)){
-				if(\method_exists($this->controller, $this->action)){
-					$method=new \ReflectionMethod($this->controller,$this->action);
-					$params=$method->getParameters();
-					foreach ($array["parameters"] as $paramIndex){
-						if($paramIndex==="*"){
-							$pName=$this->getVariadicParam($params);
-							if($pName!==false){
-								$this->parameters[]="...".$pName;
+	private function fromArray($array) {
+		$this->controller = $array["controller"];
+		$this->action = $array["action"];
+		$this->name = isset($array["name"]) ? $array["name"] : '';
+		$this->cache = isset($array["cache"]) ? $array["cache"] : false;
+		$this->duration = isset($array["duration"]) ? $array["duration"] : false;
+		if (isset($array["parameters"]) && \sizeof($array["parameters"]) > 0) {
+			if (\class_exists($this->controller)) {
+				if (\method_exists($this->controller, $this->action)) {
+					$method = new \ReflectionMethod($this->controller, $this->action);
+					$params = $method->getParameters();
+					foreach ($array["parameters"] as $paramIndex) {
+						if ($paramIndex === "*") {
+							$pName = $this->getVariadicParam($params);
+							if ($pName !== false) {
+								$this->parameters[] = "..." . $pName;
 							}
-						}else{
-							$index=\intval(\str_replace("~", "", $paramIndex));
-							if(isset($params[$index])){
-								if(\substr($paramIndex,0,1)==="~")
-									$this->parameters[]=$params[$index]->getName();
+						} else {
+							$index = \intval(\str_replace("~", "", $paramIndex));
+							if (isset($params[$index])) {
+								if (\substr($paramIndex, 0, 1) === "~")
+									$this->parameters[] = $params[$index]->getName();
 								else
-									$this->parameters[]=$params[$index]->getName()."*";
+									$this->parameters[] = $params[$index]->getName() . "*";
 							}
 						}
 					}
-				}else{
-					$this->messages[]="The method <b>".$this->action."</b> does not exists in the class <b>".$this->controller."</b>.\n";
+				} else {
+					$this->messages[] = "The method <b>" . $this->action . "</b> does not exists in the class <b>" . $this->controller . "</b>.\n";
 				}
-			}else{
-				$this->messages[$this->controller]="The class <b>".$this->controller."</b> does not exist.\n";
+			} else {
+				$this->messages[$this->controller] = "The class <b>" . $this->controller . "</b> does not exist.\n";
 			}
 		}
 	}
-	private function getVariadicParam($parameters){
-		foreach ($parameters as $param){
-			if($param->isVariadic()){
+
+	private function getVariadicParam($parameters) {
+		foreach ($parameters as $param) {
+			if ($param->isVariadic()) {
 				return $param->getName();
 			}
 		}
@@ -93,7 +104,7 @@ class Route {
 	}
 
 	public function setPath($path) {
-		$this->path=$path;
+		$this->path = $path;
 		return $this;
 	}
 
@@ -102,7 +113,7 @@ class Route {
 	}
 
 	public function setController($controller) {
-		$this->controller=$controller;
+		$this->controller = $controller;
 		return $this;
 	}
 
@@ -111,7 +122,7 @@ class Route {
 	}
 
 	public function setAction($action) {
-		$this->action=$action;
+		$this->action = $action;
 		return $this;
 	}
 
@@ -120,7 +131,7 @@ class Route {
 	}
 
 	public function setParameters($parameters) {
-		$this->parameters=$parameters;
+		$this->parameters = $parameters;
 		return $this;
 	}
 
@@ -129,7 +140,7 @@ class Route {
 	}
 
 	public function setCache($cache) {
-		$this->cache=$cache;
+		$this->cache = $cache;
 		return $this;
 	}
 
@@ -138,7 +149,7 @@ class Route {
 	}
 
 	public function setDuration($duration) {
-		$this->duration=$duration;
+		$this->duration = $duration;
 		return $this;
 	}
 
@@ -147,26 +158,32 @@ class Route {
 	}
 
 	public function setName($name) {
-		$this->name=$name;
+		$this->name = $name;
 		return $this;
 	}
 
-	public function getCompiledParams(){
-		return " (".((\is_array($this->parameters))?\implode(", ", $this->parameters):$this->parameters).")";
+	public function getCompiledParams() {
+		return " (" . ((\is_array($this->parameters)) ? \implode(", ", $this->parameters) : $this->parameters) . ")";
 	}
 
-	public static function init($array){
-		$result=[];
-		foreach ($array as $k=>$v){
-			if(isset($v['controller'])){
-				$result[]=new Route($k, $v);
-			}else{
-				$routes=self::mergeRouteArray($v);
-				foreach ($routes as $route){
-					$result[]=new Route($k,$route);
+	public static function init($array) {
+		$result = [];
+		foreach ($array as $k => $v) {
+			if (isset($v['controller'])) {
+				$result[] = new Route($k, $v);
+			} else {
+				$routes = self::mergeRouteArray($v);
+				foreach ($routes as $route) {
+					$result[] = new Route($k, $route);
 				}
 			}
 		}
+		\usort($result, function ($left, $right) {
+			if ($left->getController() !== $right->getController()) {
+				return $left->getController() <=> $right->getController();
+			}
+			return $left->getAction() <=> $right->getAction();
+		});
 		return $result;
 	}
 
@@ -183,7 +200,7 @@ class Route {
 	}
 
 	public function setMethods($methods) {
-		$this->methods=$methods;
+		$this->methods = $methods;
 		return $this;
 	}
 }
