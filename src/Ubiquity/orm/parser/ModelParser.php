@@ -11,9 +11,9 @@ use Ubiquity\exceptions\TransformerException;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.1
+ * @version 1.0.2
  * @package ubiquity.dev
- *         
+ *
  */
 class ModelParser {
 
@@ -36,6 +36,8 @@ class ModelParser {
 	protected $notSerializableMembers = [];
 
 	protected $fieldNames;
+
+	protected $memberNames;
 
 	protected $fieldTypes = [];
 
@@ -62,6 +64,7 @@ class ModelParser {
 			$propName = $property->getName();
 			$fieldName = Reflexion::getFieldName($modelClass, $propName);
 			$this->fieldNames[$propName] = $fieldName;
+			$this->memberNames[$fieldName] = $propName;
 			$nullable = Reflexion::isNullable($modelClass, $propName);
 			$serializable = Reflexion::isSerializable($modelClass, $propName);
 			if ($nullable)
@@ -86,6 +89,7 @@ class ModelParser {
 		$result["#primaryKeys"] = $this->primaryKeys;
 		$result["#manyToOne"] = $this->manytoOneMembers;
 		$result["#fieldNames"] = $this->fieldNames;
+		$result['#memberNames'] = $this->memberNames;
 		$result["#fieldTypes"] = $this->fieldTypes;
 		$result["#nullable"] = $this->nullableMembers;
 		$result["#notSerializable"] = $this->notSerializableMembers;
