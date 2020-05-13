@@ -17,7 +17,7 @@ use Ubiquity\utils\base\CodeUtils;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.4
+ * @version 1.0.5
  * @package ubiquity.dev
  *
  */
@@ -169,33 +169,9 @@ abstract class ScaffoldController {
 						$content .= "\n\t\t\$this->loadView('" . $viewname . "');\n";
 						$msgContent .= "<br>Created view : <b>" . $viewname . "</b>";
 					}
-					$routeAnnotation = "";
-					if (is_array($routeInfo)) {
-						$name = "route";
-						$path = $routeInfo["path"];
-						$routeProperties = [
-							'"' . $path . '"'
-						];
-						$methods = $routeInfo["methods"];
-						if (UString::isNotNull($methods)) {
-							$routeProperties[] = '"methods"=>' . $this->getMethods($methods);
-						}
-						if (isset($routeInfo["ck-Cache"])) {
-							$routeProperties[] = '"cache"=>true';
-							if (isset($routeInfo["duration"])) {
-								$duration = $routeInfo["duration"];
-								if (\ctype_digit($duration)) {
-									$routeProperties[] = '"duration"=>' . $duration;
-								}
-							}
-						}
-						$routeProperties = \implode(",", $routeProperties);
-						$routeAnnotation = UFileSystem::openReplaceInTemplateFile($templateDir . "annotation.tpl", [
-							"%name%" => $name,
-							"%properties%" => $routeProperties
-						]);
-
-						$msgContent .= $this->_addMessageForRouteCreation($path);
+					$routeAnnotation = $this->generateRouteAnnotation($routeInfo, $templateDir);
+					if ($routeAnnotation != '') {
+						$msgContent .= $this->_addMessageForRouteCreation($routeInfo["path"]);
 					}
 					$parameters = CodeUtils::cleanParameters($parameters);
 					$actionContent = UFileSystem::openReplaceInTemplateFile($templateDir . "action.tpl", [
@@ -223,8 +199,7 @@ abstract class ScaffoldController {
 		}
 	}
 
-	protected function getMethods($strMethods) {
-		$methods = \explode(",", $strMethods);
+	protected function getMethods(array $methods) {
 		$result = [];
 		foreach ($methods as $method) {
 			$result[] = '"' . $method . '"';
@@ -232,7 +207,44 @@ abstract class ScaffoldController {
 		return "[" . \implode(",", $result) . "]";
 	}
 
-	public function _createViewOp($controller, $action, $theme = null) {
+	protected function generateRouteAnnotation($routeInfo, $templateDir) {
+		$routeAnnotation = "";
+		if (is_array($routeInfo)) {
+			$name = "route";
+			$path = $routeInfo["path"];
+			$routeProperties = [
+				'"' . $path . '"'
+			];
+			$strMethods = $routeInfo["methods"];
+			if (UString::isNotNull($strMethods)) {
+				$methods = \explode(",", $strMethods);
+				$methodsCount = \count($methods);
+				if ($methodsCount > 1) {
+					$routeProperties[] = '"methods"=>' . $this->getMethods($methods);
+				} elseif ($methodsCount == 1) {
+					$name = \current($methods);
+				}
+			}
+			if (isset($routeInfo["ck-Cache"])) {
+				$routeProperties[] = '"cache"=>true';
+				if (isset($routeInfo["duration"])) {
+					$duration = $routeInfo["duration"];
+					if (\ctype_digit($duration)) {
+						$routeProperties[] = '"duration"=>' . $duration;
+					}
+				}
+			}
+			$routeProperties = \implode(",", $routeProperties);
+			$routeAnnotation = UFileSystem::openReplaceInTemplateFile($templateDir . "annotation.tpl", [
+				"%name%" => $name,
+				"%properties%" => $routeProperties
+			]);
+
+			return $routeAnnotation;
+		}
+	}
+
+	protected function _createViewOp($controller, $action, $theme = null) {
 		$prefix = "";
 		if (! isset($theme) || $theme == '') {
 			$theme = $this->config["templateEngineOptions"]["activeTheme"] ?? null;
