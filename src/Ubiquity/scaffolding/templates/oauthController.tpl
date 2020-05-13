@@ -3,7 +3,7 @@
 use Hybridauth\Adapter\AdapterInterface;
  /**
  * Controller %controllerName%
- **/
+ */
 class %controllerName% extends %baseClass%{
 
 	public function index(){

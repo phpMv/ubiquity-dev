@@ -5,7 +5,7 @@
 
  /**
  * Mailer %classname%
- **/
+ */
 class %classname% extends %extendsOrImplements% {
 
 	/**
