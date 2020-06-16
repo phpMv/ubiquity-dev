@@ -3,6 +3,7 @@ namespace Ubiquity\scaffolding;
 
 use Ubiquity\utils\base\UFileSystem;
 use Ubiquity\utils\base\UArray;
+use Ubiquity\devtools\utils\FileUtils;
 
 /**
  * Create a new command
@@ -39,7 +40,9 @@ class ScaffoldCommand {
 		$result = [];
 		$parameters = \explode(',', $this->parameters);
 		foreach ($parameters as $param) {
-			$result[] = "'{$param}' => Parameter::create('{$param}LongName', 'The {$param} description.', [])";
+			if ($param != null) {
+				$result[] = "'{$param}' => Parameter::create('{$param}LongName', 'The {$param} description.', [])";
+			}
 		}
 		if (\count($result) > 0) {
 			$this->uses[] = 'Ubiquity\\devtools\\cmd\\Parameter';
@@ -50,6 +53,7 @@ class ScaffoldCommand {
 	protected function addUses() {
 		$result = [];
 		foreach ($this->uses as $use) {
+			$use = \rtrim($use, '\\');
 			$result[] = "use {$use};";
 		}
 		return \implode("\n", $result);
@@ -57,7 +61,7 @@ class ScaffoldCommand {
 
 	public function createNamespace($directory) {
 		if ($directory != null) {
-			return 'namespace ' . \str_replace(\DS, '\\', $directory) . ';';
+			return 'namespace ' . \trim(\str_replace(\DS, '\\', $directory), '\\') . ';';
 		}
 		return '';
 	}
@@ -71,18 +75,22 @@ class ScaffoldCommand {
 		$directory ??= 'commands';
 		$ext ??= '.cmd.php';
 		$template = 'createCommand.tpl';
-		$classname = \ucfirst($this->name) . $ext;
-		$aliases = \explode(',', $this->aliases);
+		$classname = \ucfirst($this->name);
+		$filename = $classname . $ext;
+		$aliases = \array_filter(\explode(',', $this->aliases));
 		$variables = [
+			'%name%' => $this->name,
 			'%classname%' => $classname,
-			'%aliases' => UArray::asPhpArray($aliases, 'array'),
+			'%aliases%' => UArray::asPhpArray($aliases, 'array'),
 			'%parameters%' => $this->createParameters(),
 			'%value%' => $this->value,
-			'%description%' => $this->description,
+			'%description%' => $this->description == null ? ($this->name . ' description.') : $this->description,
 			'%uses%' => $this->addUses(),
-			'%namespace' => $this->createNamespace($directory)
+			'%namespace%' => $this->createNamespace($directory)
 		];
-		$cmdPath = \ROOT . \DS . $directory . $classname;
+		$path = realpath(\ROOT . \DS . '..' . \DS . $directory);
+		FileUtils::safeMkdir($path);
+		$cmdPath = $path . \DS . $filename;
 		return UFileSystem::openReplaceWriteFromTemplateFile($this->getTemplateDir() . $template, $cmdPath, $variables);
 	}
 }
