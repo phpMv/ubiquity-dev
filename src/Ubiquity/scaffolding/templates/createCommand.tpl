@@ -1,9 +1,8 @@
 <?php
-namespace commands;
+%namespace%
 
 use Ubiquity\devtools\cmd\commands\AbstractCustomCommand;
 use Ubiquity\devtools\cmd\ConsoleFormatter;
-use Ubiquity\devtools\cmd\ConsoleTable;
 %uses%
 
 class %classname% extends AbstractCustomCommand {
@@ -34,6 +33,7 @@ class %classname% extends AbstractCustomCommand {
 
 	public function run($config, $options, $what, ...$otherArgs) {
 		//TODO implement command behavior
+		ConsoleFormatter::showInfo('Run %name% command');
 	}
 }
 
