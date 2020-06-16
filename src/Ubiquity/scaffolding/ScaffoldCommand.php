@@ -66,7 +66,7 @@ class ScaffoldCommand {
 		return \dirname(__DIR__) . "/scaffolding/templates/";
 	}
 
-	public function create($pattern) {
+	public function create($pattern, &$cmdPath) {
 		@list ($directory, $ext) = \explode('*', $pattern);
 		$directory ??= 'commands';
 		$ext ??= '.cmd.php';
@@ -82,7 +82,8 @@ class ScaffoldCommand {
 			'%uses%' => $this->addUses(),
 			'%namespace' => $this->createNamespace($directory)
 		];
-		return UFileSystem::openReplaceWriteFromTemplateFile($this->getTemplateDir() . $template, \ROOT . \DS . $directory . $classname, $variables);
+		$cmdPath = \ROOT . \DS . $directory . $classname;
+		return UFileSystem::openReplaceWriteFromTemplateFile($this->getTemplateDir() . $template, $cmdPath, $variables);
 	}
 }
 
