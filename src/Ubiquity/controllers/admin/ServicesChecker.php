@@ -26,7 +26,7 @@ class ServicesChecker {
 		return false;
 	}
 
-	public static function isEncryptionStarted() {
+	public static function isEncryptionStarted(): bool {
 		if (self::hasSecurity()) {
 			return \Ubiquity\security\data\EncryptionManager::isStarted();
 		}
