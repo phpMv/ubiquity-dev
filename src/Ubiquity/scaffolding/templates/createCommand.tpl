@@ -33,7 +33,7 @@ class %classname% extends AbstractCustomCommand {
 
 	public function run($config, $options, $what, ...$otherArgs) {
 		//TODO implement command behavior
-		ConsoleFormatter::showInfo('Run %name% command');
+		echo ConsoleFormatter::showInfo('Run %name% command');
 	}
 }
 

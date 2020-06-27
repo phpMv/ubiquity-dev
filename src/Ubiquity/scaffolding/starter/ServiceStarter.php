@@ -34,7 +34,7 @@ class ServiceStarter {
 	}
 
 	public function getTemplateDir() {
-		return \dirname(__DIR__) . "/../scaffolding/templates/services/";
+		return \dirname(__DIR__) . "/templates/services/";
 	}
 
 	public function addService($serviceName) {
