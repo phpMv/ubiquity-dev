@@ -88,9 +88,9 @@ class ScaffoldCommand {
 			'%uses%' => $this->addUses(),
 			'%namespace%' => $this->createNamespace($directory)
 		];
-		$path = realpath(\ROOT . \DS . '..' . \DS . $directory);
+		$path = \ROOT . \DS . '..' . \DS . $directory;
 		FileUtils::safeMkdir($path);
-		$cmdPath = $path . \DS . $filename;
+		$cmdPath = realpath($path) . \DS . $filename;
 		return UFileSystem::openReplaceWriteFromTemplateFile($this->getTemplateDir() . $template, $cmdPath, $variables);
 	}
 }
