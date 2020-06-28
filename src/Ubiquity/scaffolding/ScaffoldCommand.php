@@ -4,6 +4,7 @@ namespace Ubiquity\scaffolding;
 use Ubiquity\utils\base\UFileSystem;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\devtools\utils\FileUtils;
+use Ubiquity\utils\base\UString;
 
 /**
  * Create a new command
@@ -84,7 +85,7 @@ class ScaffoldCommand {
 			'%aliases%' => UArray::asPhpArray($aliases, 'array'),
 			'%parameters%' => $this->createParameters(),
 			'%value%' => $this->value,
-			'%description%' => $this->description == null ? ($this->name . ' description.') : $this->description,
+			'%description%' => $this->description == null ? ($this->name . ' description.') : \addslashes($this->description),
 			'%uses%' => $this->addUses(),
 			'%namespace%' => $this->createNamespace($directory)
 		];
