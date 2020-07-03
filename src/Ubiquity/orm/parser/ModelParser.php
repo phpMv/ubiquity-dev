@@ -11,7 +11,7 @@ use Ubiquity\exceptions\TransformerException;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.2
+ * @version 1.0.3
  * @package ubiquity.dev
  *
  */
@@ -49,7 +49,7 @@ class ModelParser {
 
 	public function parse($modelClass) {
 		$instance = new $modelClass();
-		$this->primaryKeys = Reflexion::getKeyFields($instance);
+		$primaryKeys = Reflexion::getKeyFields($instance);
 		$this->oneToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@oneToMany");
 		$this->manytoOneMembers = Reflexion::getMembersNameWithAnnotation($modelClass, "@manyToOne");
 		$this->manyToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@manyToMany");
@@ -79,6 +79,9 @@ class ModelParser {
 			if (! isset($this->accessors[$fieldName]) && method_exists($modelClass, $accesseur)) {
 				$this->accessors[$fieldName] = $accesseur;
 			}
+		}
+		foreach ($primaryKeys as $pk) {
+			$this->primaryKeys[$pk] = $this->fieldNames[$pk] ?? $pk;
 		}
 
 		$this->global["#tableName"] = Reflexion::getTableName($modelClass);
