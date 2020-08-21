@@ -1,9 +1,9 @@
 <?php
-
 namespace Ubiquity\orm\creator\database;
 
 use Ubiquity\orm\creator\ModelsCreator;
 use Ubiquity\db\Database;
+use Ubiquity\orm\DAO;
 
 /**
  * Generates models from a database.
@@ -18,18 +18,14 @@ use Ubiquity\db\Database;
 class DbModelsCreator extends ModelsCreator {
 
 	/**
+	 *
 	 * @var Database
 	 */
 	private $database;
 
 	protected function init($config, $offset = 'default') {
-		parent::init ( $config, $offset );
-		$this->connect ( $this->config );
-	}
-
-	private function connect($dbConfig) {
-		$this->database=new Database($dbConfig ['wrapper'] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $dbConfig ['type'], $dbConfig ['dbName'], $dbConfig ['serverName'] ?? '127.0.0.1', $dbConfig ['port'] ?? 3306, $dbConfig ['user'] ?? 'root', $dbConfig ['password'] ?? '', $dbConfig ['options'] ?? [ ], $dbConfig ['cache'] ?? false);
-		$this->database->connect();
+		parent::init($config, $offset);
+		$this->database = DAO::getSqlOrNosqlDatabase($config, $offset);
 	}
 
 	protected function getTablesName() {
@@ -44,7 +40,7 @@ class DbModelsCreator extends ModelsCreator {
 		return $this->database->getPrimaryKeys($tableName);
 	}
 
-	protected function getForeignKeys($tableName, $pkName,$dbName=null) {
-		return $this->database->getForeignKeys($tableName, $pkName,$dbName);
+	protected function getForeignKeys($tableName, $pkName, $dbName = null) {
+		return $this->database->getForeignKeys($tableName, $pkName, $dbName);
 	}
 }
