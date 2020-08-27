@@ -13,7 +13,7 @@ use Ubiquity\orm\DAO;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.3
+ * @version 1.0.4
  * @package ubiquity.dev
  *
  */
@@ -53,7 +53,9 @@ abstract class ModelsCreator {
 			foreach ($this->tables as $table) {
 				$class = new Model($table, $config["mvcNS"]["models"] . $nsPostfix);
 				$class->setDatabase($offset);
+
 				$fieldsInfos = $this->getFieldsInfos($table);
+				$class->setSimpleMembers(array_keys($fieldsInfos));
 				$keys = $this->getPrimaryKeys($table);
 				foreach ($fieldsInfos as $field => $info) {
 					$member = new Member($field);
@@ -130,16 +132,15 @@ abstract class ModelsCreator {
 					$table2 = $this->getTableName($manyToOne2->className);
 					$class1 = $this->classes[$table1];
 					$class2 = $this->classes[$table2];
-					$tableMember = \lcfirst($table) . "s";
 					$table1Member = \lcfirst($table1) . "s";
 					$table2Member = \lcfirst($table2) . "s";
 					$joinTable1 = $this->getJoinTableArray($class1, $manyToOne1);
 					$joinTable2 = $this->getJoinTableArray($class2, $manyToOne2);
 					$class1->addManyToMany($table2Member, $manyToOne2->className, $table1Member, $table, $joinTable1, $joinTable2);
-					$class1->removeMember($tableMember);
+					$class1->removeOneToManyMemberByClassAssociation($class->getName());
 
 					$class2->addManyToMany($table1Member, $manyToOne1->className, $table2Member, $table, $joinTable2, $joinTable1);
-					$class2->removeMember($tableMember);
+					$class2->removeOneToManyMemberByClassAssociation($class->getName());
 					unset($this->classes[$table]);
 				} else {
 					return;

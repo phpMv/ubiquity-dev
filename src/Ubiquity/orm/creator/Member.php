@@ -17,7 +17,7 @@ use Ubiquity\annotations\TransformerAnnotation;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.1
+ * @version 1.0.2
  * @package ubiquity.dev
  *
  */
@@ -211,5 +211,9 @@ class Member {
 		if (sizeof($validators)) {
 			$this->annotations = array_merge($this->annotations, $validators);
 		}
+	}
+
+	public function getAnnotations() {
+		return $this->annotations;
 	}
 }

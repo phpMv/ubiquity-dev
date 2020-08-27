@@ -1,17 +1,21 @@
 <?php
 namespace Ubiquity\orm\creator;
 
+use Ubiquity\annotations\OneToManyAnnotation;
+
 /**
  * Allows the creation of a model class.
  * Ubiquity\orm\creator$Model
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.2
+ * @version 1.0.4
  * @package ubiquity.dev
  *
  */
 class Model {
+
+	private $simpleMembers;
 
 	private $members;
 
@@ -22,6 +26,21 @@ class Model {
 	private $namespace;
 
 	private $database;
+
+	private function generateUniqName($member) {
+		$i = 1;
+		do {
+			$name = $member . $i;
+			$i ++;
+		} while (isset($this->members[$name]));
+		return $name;
+	}
+
+	private function checkForUniqName(&$member) {
+		if (isset($this->members[$member]) && \array_search($member, $this->simpleMembers) === false) {
+			$member = $this->generateUniqName($member);
+		}
+	}
 
 	public function __construct($name, $namespace = "models") {
 		$this->table = $name;
@@ -36,6 +55,7 @@ class Model {
 	}
 
 	public function addManyToOne($member, $name, $className, $nullable = false) {
+		$this->checkForUniqName($member);
 		if (\array_key_exists($member, $this->members) === false) {
 			$this->addMember(new Member($member));
 			$this->removeMember($name);
@@ -48,7 +68,26 @@ class Model {
 			unset($this->members[$memberName]);
 	}
 
+	public function removeOneToManyMemberByClassAssociation($className) {
+		$toDelete = [];
+		foreach ($this->members as $name => $member) {
+			$annotations = $member->getAnnotations();
+			foreach ($annotations as $annotation) {
+				if ($annotation instanceof OneToManyAnnotation) {
+					if ($annotation->className === $className) {
+						$toDelete[] = $name;
+						break;
+					}
+				}
+			}
+		}
+		foreach ($toDelete as $name) {
+			unset($this->members[$name]);
+		}
+	}
+
 	public function addOneToMany($member, $mappedBy, $className) {
+		$this->checkForUniqName($member);
 		if (\array_key_exists($member, $this->members) === false) {
 			$this->addMember(new Member($member));
 		}
@@ -56,10 +95,12 @@ class Model {
 	}
 
 	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = []) {
+		$this->checkForUniqName($member);
 		if (\array_key_exists($member, $this->members) === false) {
 			$this->addMember(new Member($member));
 		}
 		$this->members[$member]->addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns, $inverseJoinColumns);
+		return $member;
 	}
 
 	public function __toString() {
@@ -159,6 +200,10 @@ class Model {
 
 	private function getAnnotation($content) {
 		return "/**\n * @{$content}\n*/\n";
+	}
+
+	public function setSimpleMembers($members) {
+		$this->simpleMembers = $members;
 	}
 
 	public function getToString() {
