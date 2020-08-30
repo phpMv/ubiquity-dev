@@ -13,7 +13,7 @@ use Ubiquity\orm\DAO;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.4
+ * @version 1.0.5
  * @package ubiquity.dev
  *
  */
@@ -24,6 +24,8 @@ abstract class ModelsCreator {
 	protected $tables = array();
 
 	protected $classes = array();
+
+	protected $memberAccess;
 
 	abstract protected function getTablesName();
 
@@ -37,8 +39,9 @@ abstract class ModelsCreator {
 		$this->config = DAO::getDbOffset($config, $offset);
 	}
 
-	public function create($config, $initCache = true, $singleTable = null, $offset = 'default') {
+	public function create($config, $initCache = true, $singleTable = null, $offset = 'default', $memberAccess = 'private') {
 		$this->init($config, $offset);
+		$this->memberAccess = $memberAccess;
 		$dirPostfix = "";
 		$nsPostfix = "";
 		if ($offset !== 'default') {
@@ -51,14 +54,14 @@ abstract class ModelsCreator {
 			CacheManager::checkCache($config);
 
 			foreach ($this->tables as $table) {
-				$class = new Model($table, $config["mvcNS"]["models"] . $nsPostfix);
+				$class = new Model($table, $config["mvcNS"]["models"] . $nsPostfix, $memberAccess);
 				$class->setDatabase($offset);
 
 				$fieldsInfos = $this->getFieldsInfos($table);
 				$class->setSimpleMembers(array_keys($fieldsInfos));
 				$keys = $this->getPrimaryKeys($table);
 				foreach ($fieldsInfos as $field => $info) {
-					$member = new Member($field);
+					$member = new Member($field, $memberAccess);
 					if (\in_array($field, $keys)) {
 						$member->setPrimary();
 					}

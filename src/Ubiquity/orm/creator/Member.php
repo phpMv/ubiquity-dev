@@ -31,11 +31,14 @@ class Member {
 
 	private $annotations;
 
-	public function __construct($name) {
+	private $access;
+
+	public function __construct($name, $access = 'private') {
 		$this->name = $name;
 		$this->annotations = [];
 		$this->primary = false;
 		$this->manyToOne = false;
+		$this->access = $access;
 	}
 
 	public function __toString() {
@@ -53,7 +56,7 @@ class Member {
 			}
 			$annotationsStr .= "\n\t**/";
 		}
-		return $annotationsStr . "\n\tprivate $" . $this->name . ";\n";
+		return $annotationsStr . "\n\t{$this->access} $" . $this->name . ";\n";
 	}
 
 	public function setPrimary() {

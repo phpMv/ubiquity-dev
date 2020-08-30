@@ -27,6 +27,8 @@ class Model {
 
 	private $database;
 
+	private $memberAccess;
+
 	private function generateUniqName($member) {
 		$i = 1;
 		do {
@@ -42,11 +44,12 @@ class Model {
 		}
 	}
 
-	public function __construct($name, $namespace = "models") {
+	public function __construct($name, $namespace = "models", $memberAccess = 'private') {
 		$this->table = $name;
 		$this->name = \ucfirst($name);
 		$this->members = array();
 		$this->namespace = $namespace;
+		$this->memberAccess = $memberAccess;
 	}
 
 	public function addMember(Member $member) {
@@ -57,7 +60,7 @@ class Model {
 	public function addManyToOne($member, $name, $className, $nullable = false) {
 		$this->checkForUniqName($member);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member));
+			$this->addMember(new Member($member, $this->memberAccess));
 			$this->removeMember($name);
 		}
 		$this->members[$member]->addManyToOne($name, $className, $nullable);
@@ -89,7 +92,7 @@ class Model {
 	public function addOneToMany($member, $mappedBy, $className) {
 		$this->checkForUniqName($member);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member));
+			$this->addMember(new Member($member, $this->memberAccess));
 		}
 		$this->members[$member]->addOneToMany($mappedBy, $className);
 	}
@@ -97,7 +100,7 @@ class Model {
 	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = []) {
 		$this->checkForUniqName($member);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member));
+			$this->addMember(new Member($member, $this->memberAccess));
 		}
 		$this->members[$member]->addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns, $inverseJoinColumns);
 		return $member;
