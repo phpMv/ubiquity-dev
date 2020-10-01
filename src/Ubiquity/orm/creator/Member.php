@@ -18,7 +18,7 @@ use Ubiquity\annotations\TransformerAnnotation;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.2
- * @package ubiquity.dev
+ * @category ubiquity.dev
  *
  */
 class Member {

@@ -12,7 +12,7 @@ use Ubiquity\exceptions\TransformerException;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.3
- * @package ubiquity.dev
+ * @category ubiquity.dev
  *
  */
 class ModelParser {

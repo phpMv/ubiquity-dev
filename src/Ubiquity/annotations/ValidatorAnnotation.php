@@ -16,7 +16,7 @@ use Ubiquity\utils\base\UArray;
  *
  * @author jc
  * @version 1.0.0.1
- * @package annotations
+ * @category annotations
  * @usage('property'=>true, 'inherited'=>true, 'multiple'=>true)
  */
 class ValidatorAnnotation extends BaseAnnotation {

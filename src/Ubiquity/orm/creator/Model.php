@@ -10,7 +10,7 @@ use Ubiquity\annotations\OneToManyAnnotation;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.4
- * @package ubiquity.dev
+ * @category ubiquity.dev
  *
  */
 class Model {

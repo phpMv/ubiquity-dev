@@ -10,7 +10,7 @@ use Ubiquity\db\reverse\DbGenerator;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
- * @package ubiquity.dev
+ * @category ubiquity.dev
  *
  */
 class TableReversor {

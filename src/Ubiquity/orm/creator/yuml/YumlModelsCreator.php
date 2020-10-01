@@ -11,7 +11,7 @@ use Ubiquity\orm\creator\ModelsCreator;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.1
- * @package ubiquity.dev
+ * @category ubiquity.dev
  *
  */
 class YumlModelsCreator extends ModelsCreator {

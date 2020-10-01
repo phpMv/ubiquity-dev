@@ -10,7 +10,7 @@ use Ubiquity\orm\DAO;
  * This class is part of Ubiquity
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
- * @package ubiquity.dev
+ * @category ubiquity.dev
  *
  */
 class TableExport extends DataExport{
