@@ -1,5 +1,4 @@
 <?php
-
 namespace Ubiquity\orm\reverse;
 
 use Ubiquity\db\reverse\DbGenerator;
@@ -12,13 +11,17 @@ use Ubiquity\cache\CacheManager;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.1
- * @category ubiquity.dev
+ * @version 1.0.2
+ * @package Ubiquity.dev
  *
  */
 class DatabaseReversor {
+
 	private $generator;
+
 	private $database;
+
+	private $models;
 
 	public function __construct(DbGenerator $generator, $databaseOffset = 'default') {
 		$this->generator = $generator;
@@ -26,19 +29,23 @@ class DatabaseReversor {
 	}
 
 	public function createDatabase($name) {
-		$this->generator->createDatabase ( $name );
-		$this->generator->selectDatabase ( $name );
-		$config = Startup::getConfig ();
-		$models = CacheManager::getModels ( $config, true, $this->database );
-		foreach ( $models as $model ) {
-			$tableReversor = new TableReversor ( $model );
-			$tableReversor->initFromClass ();
-			$tableReversor->generateSQL ( $this->generator );
+		$this->generator->createDatabase($name);
+		$this->generator->selectDatabase($name);
+		$config = Startup::getConfig();
+		$models = $this->models ?? CacheManager::getModels($config, true, $this->database);
+		foreach ($models as $model) {
+			$tableReversor = new TableReversor($model);
+			$tableReversor->initFromClass();
+			$tableReversor->generateSQL($this->generator);
 		}
-		$this->generator->generateManyToManys ();
+		$this->generator->generateManyToManys();
 	}
 
 	public function __toString() {
-		return $this->generator->__toString ();
+		return $this->generator->__toString();
+	}
+
+	public function setModels($models) {
+		$this->models = $models;
 	}
 }
