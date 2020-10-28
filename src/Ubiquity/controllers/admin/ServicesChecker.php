@@ -6,7 +6,7 @@ namespace Ubiquity\controllers\admin;
  * This class is part of Ubiquity
  *
  * @author jc
- * @version 1.0.0
+ * @version 1.0.1
  *
  */
 class ServicesChecker {
@@ -17,6 +17,10 @@ class ServicesChecker {
 
 	public static function hasShieldon(): bool {
 		return \class_exists('\\Shieldon\\Container');
+	}
+
+	public static function hasAcl(): bool {
+		return \class_exists('\\Ubiquity\\security\\acl\\AclManager');
 	}
 
 	public static function isCsrfStarted(): bool {
