@@ -4,8 +4,8 @@
 %uses%
 
  /**
- * Mailer %classname%
- */
+  * Mailer %classname%
+  */
 class %classname% extends %extendsOrImplements% {
 
 	/**

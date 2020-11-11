@@ -1,8 +1,8 @@
 <?php
 %namespace%
  /**
- * Controller %controllerName%
- */
+  * Controller %controllerName%
+  */
 class %controllerName% extends %baseClass%{
 
 	public function index(){

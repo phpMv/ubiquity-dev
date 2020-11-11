@@ -3,7 +3,7 @@
 
 use Ubiquity\controllers\seo\SeoController;
 
- /**
+/**
  * SEO Controller %controllerName%
  */
 class %controllerName% extends SeoController {
@@ -15,8 +15,8 @@ class %controllerName% extends SeoController {
 	}
 	
 	 /**
-	 * %route%
-	 **/
+	  * %route%
+	  */
 	public function index(){
 		return parent::index();
 	}

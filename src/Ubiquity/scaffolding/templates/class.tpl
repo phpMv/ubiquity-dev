@@ -2,8 +2,8 @@
 %namespace%
 %uses%
  /**
- * Class %classname%
- */
+  * Class %classname%
+  */
 class %classname% %extendsOrImplements%{
 %classContent%
 }

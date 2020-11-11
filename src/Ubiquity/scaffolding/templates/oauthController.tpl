@@ -2,16 +2,16 @@
 %namespace%
 use Hybridauth\Adapter\AdapterInterface;
  /**
- * Controller %controllerName%
- */
+  * Controller %controllerName%
+  */
 class %controllerName% extends %baseClass%{
 
 	public function index(){
 	}
 	
 	/**
-	* @get("%route%/{name}")
-	**/
+	 * @get("%route%/{name}")
+	 */
 	public function _oauth(string $name):void {
 		parent::_oauth($name);
 	}
