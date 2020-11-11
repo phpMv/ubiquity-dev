@@ -30,7 +30,7 @@ class ColumnAnnotation extends BaseAnnotation {
 		} else if (isset($properties['name'])) {
 			$this->name = $properties['name'];
 		} else {
-			throw new \Exception('Table annotation must have a name');
+			throw new \Exception('Column annotation must have a name');
 		}
 		parent::initAnnotation($properties);
 	}
