@@ -11,7 +11,7 @@ use Ubiquity\exceptions\TransformerException;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.3
+ * @version 1.0.4
  * @category ubiquity.dev
  *
  */
@@ -47,8 +47,46 @@ class ModelParser {
 
 	protected $yuml;
 
+	protected $swapClasses = [];
+
+	protected function initSwapClasses($className) {
+		if (class_exists('\\Ubiquity\\security\\acl\\AclManager', true)) {
+			$swapClasses = \Ubiquity\security\acl\AclManager::getModelClassesSwap();
+			$this->swapClasses += $swapClasses[$className] ?? [];
+		}
+	}
+
+	protected function swapValues($arrayOrValue) {
+		$result = $arrayOrValue;
+		foreach ($this->swapClasses as $original => $replacement) {
+			if (is_array($arrayOrValue)) {
+				$result = $this->swapArrayValues($result, $original, $replacement);
+			} else {
+				$result = $this->swapValue($arrayOrValue, $original, $replacement);
+			}
+		}
+		return $result;
+	}
+
+	protected function swapArrayValues(array $values, $original, $replacement) {
+		$result = [];
+		foreach ($values as $k => $v) {
+			if (\is_array($v)) {
+				$result[$k] = $this->swapArrayValues($v, $original, $replacement);
+			} else {
+				$result[$k] = $this->swapValue($v, $original, $replacement);
+			}
+		}
+		return $result;
+	}
+
+	protected function swapValue($value, $original, $replacement) {
+		return \str_replace($original, $replacement, $value);
+	}
+
 	public function parse($modelClass) {
 		$instance = new $modelClass();
+		$this->initSwapClasses($modelClass);
 		$primaryKeys = Reflexion::getKeyFields($instance);
 		$this->oneToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@oneToMany");
 		$this->manytoOneMembers = Reflexion::getMembersNameWithAnnotation($modelClass, "@manyToOne");
@@ -136,10 +174,10 @@ class ModelParser {
 		}
 
 		foreach ($this->joinColumnMembers as $member => $annotation) {
-			$result["#joinColumn"][$member] = $annotation->getPropertiesAndValues();
+			$result["#joinColumn"][$member] = $this->swapValues($annotation->getPropertiesAndValues());
 			$result["#invertedJoinColumn"][$annotation->name] = [
 				"member" => $member,
-				"className" => $annotation->className
+				"className" => $this->swapValues($annotation->className)
 			];
 		}
 		return $result;
