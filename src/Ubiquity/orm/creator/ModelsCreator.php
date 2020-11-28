@@ -42,11 +42,11 @@ abstract class ModelsCreator {
 	public function create($config, $initCache = true, $singleTable = null, $offset = 'default', $memberAccess = 'private') {
 		$this->init($config, $offset);
 		$this->memberAccess = $memberAccess;
-		$dirPostfix = "";
-		$nsPostfix = "";
+		$dirPostfix = '';
+		$nsPostfix = '';
 		if ($offset !== 'default') {
 			$dirPostfix = \DS . $offset;
-			$nsPostfix = "\\" . $offset;
+			$nsPostfix = '\\' . $offset;
 		}
 		$modelsDir = Startup::getModelsCompletePath() . $dirPostfix;
 		if (UFileSystem::safeMkdir($modelsDir)) {
@@ -54,7 +54,7 @@ abstract class ModelsCreator {
 			CacheManager::checkCache($config);
 
 			foreach ($this->tables as $table) {
-				$class = new Model($table, $config["mvcNS"]["models"] . $nsPostfix, $memberAccess);
+				$class = new Model($table, $config['mvcNS']['models'] . $nsPostfix, $memberAccess);
 				$class->setDatabase($offset);
 
 				$fieldsInfos = $this->getFieldsInfos($table);
@@ -79,11 +79,11 @@ abstract class ModelsCreator {
 				foreach ($this->classes as $table => $class) {
 					$name = $class->getSimpleName();
 					echo "Creating the {$name} class\n";
-					$this->writeFile($modelsDir . \DS . $name . ".php", $class);
+					$this->writeFile($modelsDir . \DS . $name . '.php', $class);
 				}
 			}
 			if ($initCache === true) {
-				CacheManager::initCache($config, "models");
+				CacheManager::initCache($config, 'models');
 			}
 		}
 	}
@@ -92,7 +92,7 @@ abstract class ModelsCreator {
 		if (isset($this->classes[$singleTable])) {
 			$class = $this->classes[$singleTable];
 			echo "Creating the {$class->getName()} class\n";
-			$this->writeFile($modelsDir . \DS . $class->getSimpleName() . ".php", $class);
+			$this->writeFile($modelsDir . \DS . $class->getSimpleName() . '.php', $class);
 		} else {
 			echo "The {$singleTable} table does not exist in the database\n";
 		}
@@ -105,9 +105,9 @@ abstract class ModelsCreator {
 				$fks = $this->getForeignKeys($table, $key, $this->config['dbName'] ?? '');
 				foreach ($fks as $fk) {
 					$field = \lcfirst($table);
-					$fkTable = $fk["TABLE_NAME"];
-					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . "s", \lcfirst($table), $this->classes[$fkTable]->getName());
-					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk["COLUMN_NAME"]), $class->getName());
+					$fkTable = $fk['TABLE_NAME'];
+					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . 's', \lcfirst($table), $this->classes[$fkTable]->getName());
+					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk['COLUMN_NAME']), $class->getName());
 				}
 			}
 		}
@@ -116,8 +116,9 @@ abstract class ModelsCreator {
 
 	protected function getTableName($classname) {
 		foreach ($this->classes as $table => $class) {
-			if ($class->getName() === $classname)
+			if ($class->getName() === $classname) {
 				return $table;
+			}
 		}
 		$posSlash = strrpos($classname, '\\');
 		$tablename = substr($classname, $posSlash + 1);
@@ -135,8 +136,8 @@ abstract class ModelsCreator {
 					$table2 = $this->getTableName($manyToOne2->className);
 					$class1 = $this->classes[$table1];
 					$class2 = $this->classes[$table2];
-					$table1Member = \lcfirst($table1) . "s";
-					$table2Member = \lcfirst($table2) . "s";
+					$table1Member = \lcfirst($table1) . 's';
+					$table2Member = \lcfirst($table2) . 's';
 					$joinTable1 = $this->getJoinTableArray($class1, $manyToOne1);
 					$joinTable2 = $this->getJoinTableArray($class2, $manyToOne2);
 					$class1->addManyToMany($table2Member, $manyToOne2->className, $table1Member, $table, $joinTable1, $joinTable2);
@@ -159,14 +160,14 @@ abstract class ModelsCreator {
 		if ($fk !== $dFk) {
 			if ($pk !== null && $fk !== null)
 				return [
-					"name" => $fk,
-					"referencedColumnName" => $pk->getName()
+					'name' => $fk,
+					'referencedColumnName' => $pk->getName()
 				];
 		}
 		return [];
 	}
 
 	protected function writeFile($filename, $data) {
-		return file_put_contents($filename, $data);
+		return \file_put_contents($filename, $data);
 	}
 }

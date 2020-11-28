@@ -37,15 +37,16 @@ class TableReversor {
 	}
 
 	public function generateSQL(DbGenerator $generator) {
-		$table = $this->metas["#tableName"];
-		$primaryKeys = $this->metas["#primaryKeys"];
+		$table = $this->metas['#tableName'];
+		$primaryKeys = $this->metas['#primaryKeys'];
 		$serializables = $this->getSerializableFields();
-		$nullables = $this->metas["#nullable"];
-		$fieldTypes = $this->metas["#fieldTypes"];
-		$manyToOnes = $this->metas["#manyToOne"];
+		$nullables = $this->metas['#nullable'];
+		$fieldTypes = $this->metas['#fieldTypes'];
+		$manyToOnes = $this->metas['#manyToOne'];
 		$manyToManys = [];
-		if (isset($this->metas["#manyToMany"]))
-			$manyToManys = $this->metas["#manyToMany"];
+		if (isset($this->metas['#manyToMany'])) {
+			$manyToManys = $this->metas['#manyToMany'];
+		}
 		$this->scanManyToManys($generator, $manyToManys);
 		$this->generatePks($generator, $primaryKeys, $table, $fieldTypes, $nullables);
 		$this->generateForeignKeys($generator, $manyToOnes, $table);
@@ -56,28 +57,28 @@ class TableReversor {
 		foreach ($this->fkFieldsToAdd as $fkField) {
 			$generator->addKey($table, [
 				$fkField
-			], "");
+			], '');
 		}
 	}
 
 	protected function getSerializableFields() {
-		$notSerializable = $this->metas["#notSerializable"];
-		$fieldNames = $this->metas["#fieldNames"];
+		$notSerializable = $this->metas['#notSerializable'];
+		$fieldNames = $this->metas['#fieldNames'];
 		return \array_diff($fieldNames, $notSerializable);
 	}
 
 	protected function scanManyToManys(DbGenerator $generator, $manyToManys) {
 		foreach ($manyToManys as $member => $manyToMany) {
-			if (isset($this->metas["#joinTable"][$member])) {
-				$annotJoinTable = $this->metas["#joinTable"][$member];
-				$generator->addManyToMany($annotJoinTable["name"], $manyToMany["targetEntity"]);
+			if (isset($this->metas['#joinTable'][$member])) {
+				$annotJoinTable = $this->metas['#joinTable'][$member];
+				$generator->addManyToMany($annotJoinTable['name'], $manyToMany['targetEntity']);
 			}
 		}
 	}
 
 	protected function generatePks(DbGenerator $generator, $primaryKeys, $table, $fieldTypes, $nullables) {
 		$generator->addKey($table, $primaryKeys);
-		if (\sizeof($primaryKeys) === 1 && $generator->isInt($fieldTypes[\current($primaryKeys)])) {
+		if (\count($primaryKeys) === 1 && $generator->isInt($fieldTypes[\current($primaryKeys)])) {
 			$generator->addAutoInc($table, $this->getFieldAttributes($generator, \current($primaryKeys), $nullables, $fieldTypes));
 		}
 	}
@@ -95,26 +96,26 @@ class TableReversor {
 	}
 
 	protected function _generateFieldAttributes($field, $nullables, $fieldTypes) {
-		$nullable = "NOT NULL";
+		$nullable = 'NOT NULL';
 		if (\array_search($field, $nullables) !== false) {
-			$nullable = "";
+			$nullable = '';
 		}
 		return [
-			"name" => $field,
-			"type" => $fieldTypes[$field],
-			"extra" => $nullable
+			'name' => $field,
+			'type' => $fieldTypes[$field],
+			'extra' => $nullable
 		];
 	}
 
 	protected function generateForeignKey(DbGenerator $generator, $tableName, $member) {
-		$fieldAnnot = OrmUtils::getMemberJoinColumns("", $member, $this->metas);
+		$fieldAnnot = OrmUtils::getMemberJoinColumns('', $member, $this->metas);
 		if ($fieldAnnot !== null) {
 			$annotationArray = $fieldAnnot[1];
-			$referencesTableName = OrmUtils::getTableName($annotationArray["className"]);
-			$referencesFieldName = OrmUtils::getFirstKey($annotationArray["className"]);
+			$referencesTableName = OrmUtils::getTableName($annotationArray['className']);
+			$referencesFieldName = OrmUtils::getFirstKey($annotationArray['className']);
 			$fkFieldName = $fieldAnnot[0];
 			$this->fkFieldsToAdd[] = $fkFieldName;
-			$this->fkFieldTypesToAdd[$fkFieldName] = OrmUtils::getFieldType($annotationArray["className"], $referencesFieldName);
+			$this->fkFieldTypesToAdd[$fkFieldName] = OrmUtils::getFieldType($annotationArray['className'], $referencesFieldName);
 			$generator->addForeignKey($tableName, $fkFieldName, $referencesTableName, $referencesFieldName);
 		}
 	}

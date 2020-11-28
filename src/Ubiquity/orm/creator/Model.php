@@ -44,7 +44,7 @@ class Model {
 		}
 	}
 
-	public function __construct($name, $namespace = "models", $memberAccess = 'private') {
+	public function __construct($name, $namespace = 'models', $memberAccess = 'private') {
 		$this->table = $name;
 		$this->name = \ucfirst($name);
 		$this->members = array();
@@ -108,8 +108,8 @@ class Model {
 
 	public function __toString() {
 		$result = "<?php\n";
-		if ($this->namespace !== "" && $this->namespace !== null) {
-			$result .= "namespace " . $this->namespace . ";\n";
+		if ($this->namespace !== '' && $this->namespace !== null) {
+			$result .= 'namespace ' . $this->namespace . ";\n";
 		}
 		if ($this->database != null && $this->database !== 'default') {
 			$result .= $this->getAnnotation("database('{$this->database}')");
@@ -117,12 +117,12 @@ class Model {
 		if ($this->table !== $this->name) {
 			$result .= $this->getAnnotation("table('{$this->table}')");
 		}
-		$result .= "class " . ucfirst($this->name) . "{";
+		$result .= 'class ' . \ucfirst($this->name) . '{';
 		$members = $this->members;
 		\array_walk($members, function ($item) {
-			return $item . "";
+			return $item . '';
 		});
-		$result .= \implode("", $members);
+		$result .= \implode('', $members);
 		foreach ($members as $member) {
 			$result .= $member->getGetter();
 			$result .= $member->getSetter();
@@ -133,8 +133,8 @@ class Model {
 	}
 
 	public function getName() {
-		$namespace = "";
-		if ($this->namespace !== "" && $this->namespace !== null)
+		$namespace = '';
+		if ($this->namespace !== '' && $this->namespace !== null)
 			$namespace = $this->namespace . '\\';
 		return $namespace . $this->name;
 	}
@@ -168,17 +168,18 @@ class Model {
 
 	public function getPkName() {
 		$pk = $this->getPrimaryKey();
-		if (isset($pk))
+		if (isset($pk)) {
 			return $pk->getName();
+		}
 		return null;
 	}
 
 	public function getDefaultFk() {
-		return "id" . $this->name;
+		return 'id' . $this->name;
 	}
 
 	public function getManyToOneMembers() {
-		$result = array();
+		$result = [];
 		foreach ($this->members as $member) {
 			if ($member->isManyToOne() === true) {
 				$result[] = $member;

@@ -42,12 +42,12 @@ class Member {
 	}
 
 	public function __toString() {
-		$annotationsStr = "";
+		$annotationsStr = '';
 		if (sizeof($this->annotations) > 0) {
 			$annotationsStr = "\n\t/**";
 			$annotations = $this->annotations;
 			\array_walk($annotations, function ($item) {
-				return $item . "";
+				return $item . '';
 			});
 			if (\sizeof($annotations) > 1) {
 				$annotationsStr .= "\n\t * " . implode("\n\t * ", $annotations);
@@ -69,8 +69,8 @@ class Member {
 	public function setDbType($infos) {
 		$annot = new ColumnAnnotation();
 		$annot->name = $this->name;
-		$annot->dbType = $infos["Type"];
-		$annot->nullable = (\strtolower($infos["Nullable"]) === "yes");
+		$annot->dbType = $infos['Type'];
+		$annot->nullable = (\strtolower($infos['Nullable']) === 'yes');
 		$this->annotations["column"] = $annot;
 	}
 
@@ -147,10 +147,10 @@ class Member {
 		$manyToMany->inversedBy = $inversedBy;
 		$jt = new JoinTableAnnotation();
 		$jt->name = $joinTable;
-		if (\sizeof($joinColumns) == 2) {
+		if (\count($joinColumns) == 2) {
 			$jt->joinColumns = $joinColumns;
 		}
-		if (\sizeof($inverseJoinColumns) == 2) {
+		if (\count($inverseJoinColumns) == 2) {
 			$jt->inverseJoinColumns = $inverseJoinColumns;
 		}
 		$this->annotations[] = $manyToMany;
@@ -197,22 +197,22 @@ class Member {
 	}
 
 	public function isNullable() {
-		if (isset($this->annotations["column"]))
-			return $this->annotations["column"]->nullable;
+		if (isset($this->annotations['column']))
+			return $this->annotations['column']->nullable;
 		return false;
 	}
 
 	public function getDbType() {
-		if (isset($this->annotations["column"]))
-			return $this->annotations["column"]->dbType;
-		return "mixed";
+		if (isset($this->annotations['column']))
+			return $this->annotations['column']->dbType;
+		return 'mixed';
 	}
 
 	public function addValidators() {
 		$parser = new ValidationModelGenerator($this->getDbType(), $this->name, ! $this->isNullable(), $this->primary);
 		$validators = $parser->parse();
-		if (sizeof($validators)) {
-			$this->annotations = array_merge($this->annotations, $validators);
+		if ($validators && \count($validators)) {
+			$this->annotations = \array_merge($this->annotations, $validators);
 		}
 	}
 
