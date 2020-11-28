@@ -11,7 +11,7 @@ use Ubiquity\exceptions\TransformerException;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.4
+ * @version 1.0.5
  * @category ubiquity.dev
  *
  */
@@ -59,10 +59,10 @@ class ModelParser {
 	protected function swapValues($arrayOrValue) {
 		$result = $arrayOrValue;
 		foreach ($this->swapClasses as $original => $replacement) {
-			if (is_array($arrayOrValue)) {
+			if (\is_array($arrayOrValue)) {
 				$result = $this->swapArrayValues($result, $original, $replacement);
 			} else {
-				$result = $this->swapValue($arrayOrValue, $original, $replacement);
+				$result = $this->swapValue($result, $original, $replacement);
 			}
 		}
 		return $result;
@@ -88,15 +88,16 @@ class ModelParser {
 		$instance = new $modelClass();
 		$this->initSwapClasses($modelClass);
 		$primaryKeys = Reflexion::getKeyFields($instance);
-		$this->oneToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@oneToMany");
-		$this->manytoOneMembers = Reflexion::getMembersNameWithAnnotation($modelClass, "@manyToOne");
-		$this->manyToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@manyToMany");
-		$this->joinColumnMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@joinColumn");
-		$this->joinTableMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@joinTable");
-		$this->transformers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, "@transformer");
-		$yuml = Reflexion::getAnnotationClass($modelClass, "@yuml");
-		if (\sizeof($yuml) > 0)
+		$this->oneToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@oneToMany');
+		$this->manytoOneMembers = Reflexion::getMembersNameWithAnnotation($modelClass, '@manyToOne');
+		$this->manyToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@manyToMany');
+		$this->joinColumnMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@joinColumn');
+		$this->joinTableMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@joinTable');
+		$this->transformers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@transformer');
+		$yuml = Reflexion::getAnnotationClass($modelClass, '@yuml');
+		if (\sizeof($yuml) > 0) {
 			$this->yuml = $yuml[0];
+		}
 		$properties = Reflexion::getProperties($instance);
 		foreach ($properties as $property) {
 			$propName = $property->getName();
@@ -110,11 +111,12 @@ class ModelParser {
 			if (! $serializable)
 				$this->notSerializableMembers[] = $propName;
 			$type = Reflexion::getDbType($modelClass, $propName);
-			if ($type === false)
-				$type = "mixed";
+			if ($type === false) {
+				$type = 'mixed';
+			}
 			$this->fieldTypes[$propName] = $type;
-			$accesseur = "set" . ucfirst($propName);
-			if (! isset($this->accessors[$fieldName]) && method_exists($modelClass, $accesseur)) {
+			$accesseur = 'set' . \ucfirst($propName);
+			if (! isset($this->accessors[$fieldName]) && \method_exists($modelClass, $accesseur)) {
 				$this->accessors[$fieldName] = $accesseur;
 			}
 		}
@@ -122,38 +124,38 @@ class ModelParser {
 			$this->primaryKeys[$pk] = $this->fieldNames[$pk] ?? $pk;
 		}
 
-		$this->global["#tableName"] = Reflexion::getTableName($modelClass);
+		$this->global['#tableName'] = Reflexion::getTableName($modelClass);
 	}
 
 	public function asArray() {
 		$result = $this->global;
-		$result["#primaryKeys"] = $this->primaryKeys;
-		$result["#manyToOne"] = $this->manytoOneMembers;
-		$result["#fieldNames"] = $this->fieldNames;
+		$result['#primaryKeys'] = $this->primaryKeys;
+		$result['#manyToOne'] = $this->manytoOneMembers;
+		$result['#fieldNames'] = $this->fieldNames;
 		$result['#memberNames'] = $this->memberNames;
-		$result["#fieldTypes"] = $this->fieldTypes;
-		$result["#nullable"] = $this->nullableMembers;
-		$result["#notSerializable"] = $this->notSerializableMembers;
-		$result["#transformers"] = [];
-		$result["#accessors"] = $this->accessors;
+		$result['#fieldTypes'] = $this->fieldTypes;
+		$result['#nullable'] = $this->nullableMembers;
+		$result['#notSerializable'] = $this->notSerializableMembers;
+		$result['#transformers'] = [];
+		$result['#accessors'] = $this->accessors;
 		if (isset($this->yuml))
-			$result["#yuml"] = $this->yuml->getPropertiesAndValues();
+			$result['#yuml'] = $this->yuml->getPropertiesAndValues();
 		foreach ($this->oneToManyMembers as $member => $annotation) {
-			$result["#oneToMany"][$member] = $annotation->getPropertiesAndValues();
+			$result['#oneToMany'][$member] = $annotation->getPropertiesAndValues();
 		}
 		foreach ($this->manyToManyMembers as $member => $annotation) {
-			$result["#manyToMany"][$member] = $annotation->getPropertiesAndValues();
+			$result['#manyToMany'][$member] = $annotation->getPropertiesAndValues();
 		}
 
 		foreach ($this->joinTableMembers as $member => $annotation) {
-			$result["#joinTable"][$member] = $annotation->getPropertiesAndValues();
+			$result['#joinTable'][$member] = $annotation->getPropertiesAndValues();
 		}
 
-		if (class_exists("Ubiquity\\contents\\transformation\\TransformersManager")) {
+		if (\class_exists('Ubiquity\\contents\\transformation\\TransformersManager')) {
 			TransformersManager::start();
 			foreach ($this->transformers as $member => $annotation) {
 				$goodTransformer = false;
-				if (array_search($member, $this->notSerializableMembers, false) !== false) {
+				if (\array_search($member, $this->notSerializableMembers, false) !== false) {
 					throw new TransformerException(sprintf('%s member is not serializable and does not supports transformers!', $member));
 				}
 				$trans = TransformersManager::getTransformerClass($annotation->name);
@@ -161,9 +163,9 @@ class ModelParser {
 					throw new TransformerException(sprintf('%s value is not a declared transformer.', $annotation->name));
 				} else {
 					foreach (TransformersManager::TRANSFORMER_TYPES as $transType => $transInterface) {
-						if (is_subclass_of($trans, $transInterface, true)) {
+						if (\is_subclass_of($trans, $transInterface, true)) {
 							$goodTransformer = true;
-							$result["#transformers"][$transType][$member] = $trans;
+							$result['#transformers'][$transType][$member] = $trans;
 						}
 					}
 					if (! $goodTransformer) {
@@ -174,16 +176,16 @@ class ModelParser {
 		}
 
 		foreach ($this->joinColumnMembers as $member => $annotation) {
-			$result["#joinColumn"][$member] = $this->swapValues($annotation->getPropertiesAndValues());
-			$result["#invertedJoinColumn"][$annotation->name] = [
-				"member" => $member,
-				"className" => $this->swapValues($annotation->className)
+			$result['#joinColumn'][$member] = $this->swapValues($annotation->getPropertiesAndValues());
+			$result['#invertedJoinColumn'][$annotation->name] = [
+				'member' => $member,
+				'className' => $this->swapValues($annotation->className)
 			];
 		}
 		return $result;
 	}
 
 	public function __toString() {
-		return "return " . UArray::asPhpArray($this->asArray(), "array") . ";";
+		return 'return ' . UArray::asPhpArray($this->asArray(), 'array') . ';';
 	}
 }
