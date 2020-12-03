@@ -54,7 +54,7 @@ class Member {
 			} else {
 				$annotationsStr .= "\n\t * " . \end($annotations);
 			}
-			$annotationsStr .= "\n\t**/";
+			$annotationsStr .= "\n\t*/";
 		}
 		return $annotationsStr . "\n\t{$this->access} $" . $this->name . ";\n";
 	}
@@ -193,8 +193,9 @@ class Member {
 	}
 
 	public function getAddInManyMember() {
-		if (\substr($this->name, - 1) === 's') {
-			$name = \substr($this->name, 0, - 1);
+		$name = $this->name;
+		if (\substr($name, - 1) === 's') {
+			$name = \substr($name, 0, - 1);
 		}
 		$result = "\n\t public function add" . \ucfirst($name) . '($' . $name . "){\n";
 		$result .= "\t\t" . '$this->' . $this->name . '[]=$' . $name . ";\n";
