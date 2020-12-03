@@ -146,8 +146,6 @@ abstract class ModelsCreator {
 					$class2->addManyToMany($table1Member, $manyToOne1->className, $table2Member, $table, $joinTable2, $joinTable1);
 					$class2->removeOneToManyMemberByClassAssociation($class->getName());
 					unset($this->classes[$table]);
-				} else {
-					return;
 				}
 			}
 		}
