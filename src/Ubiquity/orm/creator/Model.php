@@ -9,7 +9,7 @@ use Ubiquity\annotations\OneToManyAnnotation;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.4
+ * @version 1.0.5
  * @category ubiquity.dev
  *
  */
@@ -126,6 +126,9 @@ class Model {
 		foreach ($members as $member) {
 			$result .= $member->getGetter();
 			$result .= $member->getSetter();
+			if ($member->isMany()) {
+				$result .= $member->getAddInManyMember();
+			}
 		}
 		$result .= $this->getToString();
 		$result .= "\n}";

@@ -17,7 +17,7 @@ use Ubiquity\annotations\TransformerAnnotation;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.2
+ * @version 1.0.3
  * @category ubiquity.dev
  *
  */
@@ -192,8 +192,27 @@ class Member {
 		return $result;
 	}
 
+	public function getAddInManyMember() {
+		if (\substr($this->name, - 1) === 's') {
+			$name = \substr($this->name, 0, - 1);
+		}
+		$result = "\n\t public function add" . \ucfirst($name) . '($' . $name . "){\n";
+		$result .= "\t\t" . '$this->' . $this->name . '[]=$' . $name . ";\n";
+		$result .= "\t}\n";
+		return $result;
+	}
+
 	public function hasAnnotations() {
 		return \count($this->annotations) > 1;
+	}
+
+	public function isMany() {
+		foreach ($this->annotations as $annot) {
+			if (($annot instanceof OneToManyAnnotation) || ($annot instanceof ManyToManyAnnotation)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public function isNullable() {
