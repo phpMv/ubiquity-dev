@@ -38,9 +38,14 @@ class Model {
 		return $name;
 	}
 
-	private function checkForUniqName(&$member) {
+	private function checkForUniqName(&$member, $alternateName) {
 		if (isset($this->members[$member]) && \array_search($member, $this->simpleMembers) === false) {
-			$member = $this->generateUniqName($member);
+			if ($alternateName != null) {
+				$this->checkForUniqName($alternateName, null);
+				$member = $alternateName;
+			} else {
+				$member = $this->generateUniqName($member);
+			}
 		}
 	}
 
@@ -57,10 +62,12 @@ class Model {
 		return $this;
 	}
 
-	public function addManyToOne($member, $name, $className, $nullable = false) {
-		$this->checkForUniqName($member);
+	public function addManyToOne($member, $name, $className, $alternateName) {
+		$this->checkForUniqName($member, $alternateName);
+		$nullable = false;
 		if (\array_key_exists($member, $this->members) === false) {
 			$this->addMember(new Member($member, $this->memberAccess));
+			$nullable = $this->members[$name]->isNullable();
 			$this->removeMember($name);
 		}
 		$this->members[$member]->addManyToOne($name, $className, $nullable);
@@ -89,16 +96,16 @@ class Model {
 		}
 	}
 
-	public function addOneToMany($member, $mappedBy, $className) {
-		$this->checkForUniqName($member);
+	public function addOneToMany($member, $mappedBy, $className, $alternateName) {
+		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
 			$this->addMember(new Member($member, $this->memberAccess));
 		}
 		$this->members[$member]->addOneToMany($mappedBy, $className);
 	}
 
-	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = []) {
-		$this->checkForUniqName($member);
+	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = [], $alternateName = null) {
+		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
 			$this->addMember(new Member($member, $this->memberAccess));
 		}

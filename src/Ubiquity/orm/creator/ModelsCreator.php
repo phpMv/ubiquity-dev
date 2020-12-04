@@ -106,12 +106,17 @@ abstract class ModelsCreator {
 				foreach ($fks as $fk) {
 					$field = \lcfirst($table);
 					$fkTable = $fk['TABLE_NAME'];
-					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . 's', \lcfirst($table), $this->classes[$fkTable]->getName());
-					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk['COLUMN_NAME']), $class->getName());
+					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . 's', \lcfirst($table), $this->classes[$fkTable]->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']) . 's');
+					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk['COLUMN_NAME']), $class->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']));
 				}
 			}
 		}
 		$this->createManyToMany();
+	}
+
+	protected function getAlternateName($fkName, $pkName) {
+		$alter = \trim(\trim($fkName, $pkName), '_');
+		return \lcfirst($alter);
 	}
 
 	protected function getTableName($classname) {
@@ -140,10 +145,10 @@ abstract class ModelsCreator {
 					$table2Member = \lcfirst($table2) . 's';
 					$joinTable1 = $this->getJoinTableArray($class1, $manyToOne1);
 					$joinTable2 = $this->getJoinTableArray($class2, $manyToOne2);
-					$class1->addManyToMany($table2Member, $manyToOne2->className, $table1Member, $table, $joinTable1, $joinTable2);
+					$class1->addManyToMany($table2Member, $manyToOne2->className, $table1Member, $table, $joinTable1, $joinTable2, $this->getAlternateName($manyToOne2->name, \current($this->getPrimaryKeys($table1))) . 's');
 					$class1->removeOneToManyMemberByClassAssociation($class->getName());
 
-					$class2->addManyToMany($table1Member, $manyToOne1->className, $table2Member, $table, $joinTable2, $joinTable1);
+					$class2->addManyToMany($table1Member, $manyToOne1->className, $table2Member, $table, $joinTable2, $joinTable1, $this->getAlternateName($manyToOne1->name, \current($this->getPrimaryKeys($table2))) . 's');
 					$class2->removeOneToManyMemberByClassAssociation($class->getName());
 					unset($this->classes[$table]);
 				}

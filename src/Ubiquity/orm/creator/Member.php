@@ -54,7 +54,7 @@ class Member {
 			} else {
 				$annotationsStr .= "\n\t * " . \end($annotations);
 			}
-			$annotationsStr .= "\n\t*/";
+			$annotationsStr .= "\n\t**/";
 		}
 		return $annotationsStr . "\n\t{$this->access} $" . $this->name . ";\n";
 	}
