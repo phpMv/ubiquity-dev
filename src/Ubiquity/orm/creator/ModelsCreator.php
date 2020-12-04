@@ -115,7 +115,7 @@ abstract class ModelsCreator {
 	}
 
 	protected function getAlternateName($fkName, $pkName) {
-		$alter = \trim(\trim($fkName, $pkName), '_');
+		$alter = \trim(\trim($fkName, \ucfirst($pkName)), '_');
 		return \lcfirst($alter);
 	}
 
