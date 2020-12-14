@@ -50,7 +50,7 @@ class ModelParser {
 	protected $swapClasses = [];
 
 	protected function initSwapClasses($className) {
-		if (class_exists('\\Ubiquity\\security\\acl\\AclManager', true)) {
+		if (\class_exists('\\Ubiquity\\security\\acl\\AclManager', true)) {
 			$swapClasses = \Ubiquity\security\acl\AclManager::getModelClassesSwap();
 			$this->swapClasses += $swapClasses[$className] ?? [];
 		}
@@ -88,13 +88,13 @@ class ModelParser {
 		$instance = new $modelClass();
 		$this->initSwapClasses($modelClass);
 		$primaryKeys = Reflexion::getKeyFields($instance);
-		$this->oneToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@oneToMany');
-		$this->manytoOneMembers = Reflexion::getMembersNameWithAnnotation($modelClass, '@manyToOne');
-		$this->manyToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@manyToMany');
-		$this->joinColumnMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@joinColumn');
-		$this->joinTableMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@joinTable');
-		$this->transformers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, '@transformer');
-		$yuml = Reflexion::getAnnotationClass($modelClass, '@yuml');
+		$this->oneToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, 'oneToMany');
+		$this->manytoOneMembers = Reflexion::getMembersNameWithAnnotation($modelClass, 'manyToOne');
+		$this->manyToManyMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, 'manyToMany');
+		$this->joinColumnMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, 'joinColumn');
+		$this->joinTableMembers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, 'joinTable');
+		$this->transformers = Reflexion::getMembersAnnotationWithAnnotation($modelClass, 'transformer');
+		$yuml = Reflexion::getAnnotationClass($modelClass, 'yuml');
 		if (\sizeof($yuml) > 0) {
 			$this->yuml = $yuml[0];
 		}
