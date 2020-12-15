@@ -10,6 +10,7 @@ use Ubiquity\scaffolding\creators\AuthControllerCreator;
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\creators\RestControllerCreator;
 use Ubiquity\utils\base\CodeUtils;
+use Ubiquity\cache\CacheManager;
 
 /**
  * Base class for Scaffolding.
@@ -169,7 +170,7 @@ abstract class ScaffoldController {
 						$content .= "\n\t\t\$this->loadView('" . $viewname . "');\n";
 						$msgContent .= "<br>Created view : <b>" . $viewname . "</b>";
 					}
-					$routeAnnotation = $this->generateRouteAnnotation($routeInfo, $templateDir);
+					$routeAnnotation = $this->generateRouteAnnotation($routeInfo);
 					if ($routeAnnotation != '') {
 						$msgContent .= $this->_addMessageForRouteCreation($routeInfo["path"]);
 					}
@@ -199,49 +200,35 @@ abstract class ScaffoldController {
 		}
 	}
 
-	protected function getMethods(array $methods) {
-		$result = [];
-		foreach ($methods as $method) {
-			$result[] = '"' . $method . '"';
-		}
-		return "[" . \implode(",", $result) . "]";
-	}
-
-	protected function generateRouteAnnotation($routeInfo, $templateDir) {
-		$routeAnnotation = "";
-		if (is_array($routeInfo)) {
+	protected function generateRouteAnnotation($routeInfo) {
+		if (\is_array($routeInfo)) {
 			$name = "route";
 			$path = $routeInfo["path"];
-			$routeProperties = [
-				'"' . $path . '"'
-			];
+			$routeProperties['path']=$path;	
 			$strMethods = $routeInfo["methods"];
 			if (UString::isNotNull($strMethods)) {
 				$methods = \explode(",", $strMethods);
 				$methodsCount = \count($methods);
 				if ($methodsCount > 1) {
-					$routeProperties[] = '"methods"=>' . $this->getMethods($methods);
+					$routeProperties['methods'] = $methods;
 				} elseif ($methodsCount == 1) {
 					$name = \current($methods);
 				}
 			}
 			if (isset($routeInfo["ck-Cache"])) {
-				$routeProperties[] = '"cache"=>true';
+				$routeProperties['cache'] = true;
 				if (isset($routeInfo["duration"])) {
 					$duration = $routeInfo["duration"];
 					if (\ctype_digit($duration)) {
-						$routeProperties[] = '"duration"=>' . $duration;
+						$routeProperties['duration'] = $duration;
 					}
 				}
 			}
-			$routeProperties = \implode(",", $routeProperties);
-			$routeAnnotation = UFileSystem::openReplaceInTemplateFile($templateDir . "annotation.tpl", [
-				"%name%" => $name,
-				"%properties%" => $routeProperties
-			]);
+			
 
-			return $routeAnnotation;
+			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($name,$routeProperties)->asAnnotation();;
 		}
+		return '';
 	}
 
 	protected function _createViewOp($controller, $action, $theme = null) {

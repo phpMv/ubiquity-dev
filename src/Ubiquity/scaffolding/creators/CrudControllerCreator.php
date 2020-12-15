@@ -67,13 +67,15 @@ class CrudControllerCreator extends BaseControllerCreator {
 		if (isset ( $this->views )) {
 			$this->addViews ( $uses, $messages, $classContent );
 		}
+		$routePath = $this->controllerName;
+		$routeAnnot='';
 		if ($this->routePath != null) {
-			if (UString::isNotNull ( $this->routePath )) {
-				$routeName = $this->addRoute ( $this->routePath );
-			}
+			$routePath=$this->routePath;
+			$routeAnnot=$this->getRouteAnnotation($this->routePath);
 		}
+		
 		$uses = implode ( "\n", $uses );
-		$messages [] = $scaffoldController->_createController ( $crudControllerName, [ "%routeName%" => $routeName,"%route%" => $this->routePath,"%resource%" => $resource,"%uses%" => $uses,"%namespace%" => $controllerNS,"%baseClass%" => "\\Ubiquity\\controllers\\crud\\CRUDController","%content%" => $classContent ], $this->templateName );
+		$messages [] = $scaffoldController->_createController ( $crudControllerName, [ "%routePath%" => $routePath,"%route%" => $routeAnnot,"%resource%" => $resource,"%uses%" => $uses,"%namespace%" => $controllerNS,"%baseClass%" => "\\Ubiquity\\controllers\\crud\\CRUDController","%content%" => $classContent ], $this->templateName );
 		echo implode ( "\n", $messages );
 	}
 

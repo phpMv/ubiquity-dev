@@ -1,3 +1,4 @@
-%route%	public function %actionName%(%parameters%){
+%route%
+	public function %actionName%(%parameters%){
 %content%
 	}

@@ -5,6 +5,7 @@ namespace Ubiquity\scaffolding\creators;
 use Ubiquity\utils\base\UString;
 use Ubiquity\scaffolding\ScaffoldController;
 use Ubiquity\controllers\Startup;
+use Ubiquity\cache\CacheManager;
 
 /**
  * Base class for class creation in scaffolding.
@@ -31,18 +32,15 @@ abstract class BaseControllerCreator {
 
 	public function __construct($controllerName, $routePath, $views) {
 		$this->controllerName = $controllerName;
-		$this->routePath = $routePath;
+		if($routePath!=null){
+			$this->routePath = '/'.\ltrim($routePath,'/');
+		}
 		$this->views = $views;
 		$this->controllerNS = Startup::getNS ( "controllers" );
 	}
 
-	protected function addRoute(&$routePath) {
-		if (! UString::startswith ( $routePath, "/" )) {
-			$routePath = "/" . $routePath;
-		}
-		$routeName = $routePath;
-		$routePath = "\n * @route(\"{$routePath}\",\"inherited\"=>true,\"automated\"=>true)";
-		return $routeName;
+	protected function getRouteAnnotation($path){
+		return CacheManager::getAnnotationsEngineInstance()->getAnnotation('route',['path'=>$path,'automated'=>true,'inherited'=>true])->asAnnotation();
 	}
 
 	abstract public function create(ScaffoldController $scaffoldController);

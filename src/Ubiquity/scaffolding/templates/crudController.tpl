@@ -2,9 +2,7 @@
 %namespace%
 %uses%
 
- /**
-  * CRUD Controller %controllerName%%route%
-  */
+%route%
 class %controllerName% extends %baseClass%{
 
 	public function __construct(){
@@ -14,7 +12,7 @@ class %controllerName% extends %baseClass%{
 	}
 
 	public function _getBaseRoute() {
-		return '%routeName%';
+		return '%routePath%';
 	}
 	
 %content%

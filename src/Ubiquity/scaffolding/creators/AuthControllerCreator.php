@@ -40,19 +40,21 @@ class AuthControllerCreator extends BaseControllerCreator {
 		$controllerNS = $this->controllerNS;
 
 		$messages = [];
-		$routeName = $this->controllerName;
 		if (isset($this->views)) {
 			$this->addViews($uses, $messages, $classContent);
 		}
+		
+		$routePath = $this->controllerName;
+		$routeAnnot='';
+
 		if ($this->routePath != null) {
-			if (UString::isNotNull($this->routePath)) {
-				$routeName = $this->addRoute($this->routePath);
-			}
+			$routeAnnot=$this->getRouteAnnotation($this->routePath);
+			$routePath=$this->routePath;
 		}
 		$uses = implode("\n", $uses);
 		$messages[] = $scaffoldController->_createController($this->controllerName, [
-			"%routeName%" => $routeName,
-			"%route%" => $this->routePath,
+			"%routePath%" => $routePath,
+			"%route%" => $routeAnnot,
 			"%uses%" => $uses,
 			"%namespace%" => $controllerNS,
 			"%baseClass%" => $this->baseClass,
