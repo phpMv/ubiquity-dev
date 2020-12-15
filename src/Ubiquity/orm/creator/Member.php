@@ -10,6 +10,7 @@ use Ubiquity\annotations\JoinColumnAnnotation;
 use Ubiquity\annotations\ColumnAnnotation;
 use Ubiquity\contents\validation\ValidationModelGenerator;
 use Ubiquity\annotations\TransformerAnnotation;
+use Ubiquity\annotations\AnnotationsEngineInterface;
 
 /**
  * Represents a data member in a model class.
@@ -32,6 +33,11 @@ class Member {
 	private $annotations;
 
 	private $access;
+	
+	/**
+	 * @var AnnotationsEngineInterface
+	 */
+	private $annotsEngine;
 
 	public function __construct($name, $access = 'private') {
 		$this->name = $name;
@@ -61,25 +67,19 @@ class Member {
 
 	public function setPrimary() {
 		if ($this->primary === false) {
-			$this->annotations[] = new IdAnnotation();
+			$this->annotations[] = $this->annotsEngine->getAnnotation('id');
 			$this->primary = true;
 		}
 	}
 
 	public function setDbType($infos) {
-		$annot = new ColumnAnnotation();
-		$annot->name = $this->name;
-		$annot->dbType = $infos['Type'];
-		$annot->nullable = (\strtolower($infos['Nullable']) === 'yes');
-		$this->annotations["column"] = $annot;
+		$annot = $this->annotsEngine->getAnnotation('column',['name'=>$this->name,'dbType'=>$infos['Type'],'nullable'=>(\strtolower($infos['Nullable']) === 'yes')]);
+		$this->annotations['column'] = $annot;
 	}
 
 	public function addManyToOne($name, $className, $nullable = false) {
-		$this->annotations[] = new ManyToOneAnnotation();
-		$joinColumn = new JoinColumnAnnotation();
-		$joinColumn->name = $name;
-		$joinColumn->className = $className;
-		$joinColumn->nullable = $nullable;
+		$this->annotations[] = $this->annotsEngine->getAnnotation('manyToOne');
+		$joinColumn = $this->annotsEngine->getAnnotation('joinColumn',['name'=>$name,'className'=>$className,'nullable'=>$nullable]);
 		$this->annotations[] = $joinColumn;
 		$this->manyToOne = true;
 	}
