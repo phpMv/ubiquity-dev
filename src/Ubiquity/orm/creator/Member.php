@@ -1,15 +1,7 @@
 <?php
 namespace Ubiquity\orm\creator;
 
-use Ubiquity\annotations\IdAnnotation;
-use Ubiquity\annotations\ManyToOneAnnotation;
-use Ubiquity\annotations\OneToManyAnnotation;
-use Ubiquity\annotations\ManyToManyAnnotation;
-use Ubiquity\annotations\JoinTableAnnotation;
-use Ubiquity\annotations\JoinColumnAnnotation;
-use Ubiquity\annotations\ColumnAnnotation;
 use Ubiquity\contents\validation\ValidationModelGenerator;
-use Ubiquity\annotations\TransformerAnnotation;
 use Ubiquity\annotations\AnnotationsEngineInterface;
 
 /**
@@ -39,7 +31,8 @@ class Member {
 	 */
 	private $annotsEngine;
 
-	public function __construct($name, $access = 'private') {
+	public function __construct($annotsEngine,$name, $access = 'private') {
+		$this->annotsEngine=$annotsEngine;
 		$this->name = $name;
 		$this->annotations = [];
 		$this->primary = false;
@@ -50,17 +43,7 @@ class Member {
 	public function __toString() {
 		$annotationsStr = '';
 		if (sizeof($this->annotations) > 0) {
-			$annotationsStr = "\n\t/**";
-			$annotations = $this->annotations;
-			\array_walk($annotations, function ($item) {
-				return $item . '';
-			});
-			if (\sizeof($annotations) > 1) {
-				$annotationsStr .= "\n\t * " . implode("\n\t * ", $annotations);
-			} else {
-				$annotationsStr .= "\n\t * " . \end($annotations);
-			}
-			$annotationsStr .= "\n\t**/";
+			$annotationsStr = "\n".$this->annotsEngine->getAnnotationsStr($this->annotations);
 		}
 		return $annotationsStr . "\n\t{$this->access} $" . $this->name . ";\n";
 	}
@@ -85,16 +68,11 @@ class Member {
 	}
 
 	public function addOneToMany($mappedBy, $className) {
-		$oneToMany = new OneToManyAnnotation();
-		$oneToMany->mappedBy = $mappedBy;
-		$oneToMany->className = $className;
-		$this->annotations[] = $oneToMany;
+		$this->annotations[] = $this->annotsEngine->getAnnotation('oneToMany',['mappedBy'=>$mappedBy,'className'=>$className]);;
 	}
 
 	private function addTransformer($name) {
-		$transformer = new TransformerAnnotation();
-		$transformer->name = $name;
-		$this->annotations[] = $transformer;
+		$this->annotations[] = $this->annotsEngine->getAnnotation('transformer',['name'=>$name]);;
 	}
 
 	/**
@@ -142,19 +120,16 @@ class Member {
 	}
 
 	public function addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = []) {
-		$manyToMany = new ManyToManyAnnotation();
-		$manyToMany->targetEntity = $targetEntity;
-		$manyToMany->inversedBy = $inversedBy;
-		$jt = new JoinTableAnnotation();
-		$jt->name = $joinTable;
+		$manyToMany = $this->annotsEngine->getAnnotation('manyToMany',\compact('targetEntity','inversedBy'));
+		$jtArray['name'] = $joinTable;
 		if (\count($joinColumns) == 2) {
-			$jt->joinColumns = $joinColumns;
+			$jtArray['joinColumns'] = $joinColumns;
 		}
 		if (\count($inverseJoinColumns) == 2) {
-			$jt->inverseJoinColumns = $inverseJoinColumns;
+			$jtArray['inverseJoinColumns'] = $inverseJoinColumns;
 		}
 		$this->annotations[] = $manyToMany;
-		$this->annotations[] = $jt;
+		$this->annotations[] = $this->annotsEngine->getAnnotation('joinTable',$jtArray);
 	}
 
 	public function getName() {
@@ -167,7 +142,7 @@ class Member {
 
 	public function getManyToOne() {
 		foreach ($this->annotations as $annotation) {
-			if ($annotation instanceof JoinColumnAnnotation) {
+			if ($this->annotsEngine->isManyToOne($annotation)) {
 				return $annotation;
 			}
 		}
@@ -209,7 +184,7 @@ class Member {
 
 	public function isMany() {
 		foreach ($this->annotations as $annot) {
-			if (($annot instanceof OneToManyAnnotation) || ($annot instanceof ManyToManyAnnotation)) {
+			if ($this->annotsEngine->isMany($annot)) {
 				return true;
 			}
 		}
@@ -229,7 +204,7 @@ class Member {
 	}
 
 	public function addValidators() {
-		$parser = new ValidationModelGenerator($this->getDbType(), $this->name, ! $this->isNullable(), $this->primary);
+		$parser = new ValidationModelGenerator($this->annotsEngine,$this->getDbType(), $this->name, ! $this->isNullable(), $this->primary);
 		$validators = $parser->parse();
 		if ($validators && \count($validators)) {
 			$this->annotations = \array_merge($this->annotations, $validators);

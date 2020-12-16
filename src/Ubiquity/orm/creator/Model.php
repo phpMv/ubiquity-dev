@@ -28,6 +28,8 @@ class Model {
 	private $database;
 
 	private $memberAccess;
+	
+	private $annotsEngine;
 
 	private function generateUniqName($member) {
 		$i = 1;
@@ -49,7 +51,8 @@ class Model {
 		}
 	}
 
-	public function __construct($name, $namespace = 'models', $memberAccess = 'private') {
+	public function __construct($annotsEngine,$name, $namespace = 'models', $memberAccess = 'private') {
+		$this->annotsEngine=$annotsEngine;
 		$this->table = $name;
 		$this->name = \ucfirst($name);
 		$this->members = array();
@@ -66,7 +69,7 @@ class Model {
 		$this->checkForUniqName($member, $alternateName);
 		$nullable = false;
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member, $this->memberAccess));
+			$this->addMember(new Member($this->annotsEngine,$member, $this->memberAccess));
 			$nullable = $this->members[$name]->isNullable();
 			$this->removeMember($name);
 		}
@@ -83,7 +86,7 @@ class Model {
 		foreach ($this->members as $name => $member) {
 			$annotations = $member->getAnnotations();
 			foreach ($annotations as $annotation) {
-				if ($annotation instanceof OneToManyAnnotation) {
+				if ($this->annotsEngine->is('oneToMany',$annotation)) {
 					if ($annotation->className === $className) {
 						$toDelete[] = $name;
 						break;
@@ -99,7 +102,7 @@ class Model {
 	public function addOneToMany($member, $mappedBy, $className, $alternateName) {
 		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member, $this->memberAccess));
+			$this->addMember(new Member($this->annotsEngine,$member, $this->memberAccess));
 		}
 		$this->members[$member]->addOneToMany($mappedBy, $className);
 	}
@@ -107,22 +110,27 @@ class Model {
 	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = [], $alternateName = null) {
 		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member, $this->memberAccess));
+			$this->addMember(new Member($this->annotsEngine,$member, $this->memberAccess));
 		}
 		$this->members[$member]->addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns, $inverseJoinColumns);
 		return $member;
 	}
 
 	public function __toString() {
+		$annots=[];
+		if ($this->database != null && $this->database !== 'default') {
+			$annots[]=$this->annotsEngine->getAnnotation('database',['name'=>$this->database]);
+		}
+		if ($this->table !== $this->name) {
+			$annots[]=$this->annotsEngine->getAnnotation('table',['name'=>$this->table]);
+		}
+		
 		$result = "<?php\n";
 		if ($this->namespace !== '' && $this->namespace !== null) {
 			$result .= 'namespace ' . $this->namespace . ";\n";
 		}
-		if ($this->database != null && $this->database !== 'default') {
-			$result .= $this->getAnnotation("database('{$this->database}')");
-		}
-		if ($this->table !== $this->name) {
-			$result .= $this->getAnnotation("table('{$this->table}')");
+		if(\count($annots)>0){
+			$result.=$this->annotsEngine->getAnnotationsStr($annots,'');
 		}
 		$result .= 'class ' . \ucfirst($this->name) . '{';
 		$members = $this->members;
@@ -164,7 +172,7 @@ class Model {
 				$count ++;
 			}
 		}
-		return $count == \sizeof($this->members);
+		return $count == \count($this->members);
 	}
 
 	public function getPrimaryKey() {
@@ -210,10 +218,6 @@ class Model {
 			}
 		}
 		return $result;
-	}
-
-	private function getAnnotation($content) {
-		return "/**\n * @{$content}\n*/\n";
 	}
 
 	public function setSimpleMembers($members) {
