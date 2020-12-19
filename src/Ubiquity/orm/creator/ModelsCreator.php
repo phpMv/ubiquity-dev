@@ -62,7 +62,7 @@ abstract class ModelsCreator {
 				$class->setSimpleMembers(array_keys($fieldsInfos));
 				$keys = $this->getPrimaryKeys($table);
 				foreach ($fieldsInfos as $field => $info) {
-					$member = new Member($field, $memberAccess);
+					$member = new Member($engine,$field, $memberAccess);
 					if (\in_array($field, $keys)) {
 						$member->setPrimary();
 					}
