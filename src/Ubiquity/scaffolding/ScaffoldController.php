@@ -103,8 +103,8 @@ use HasUsesTrait;
 			]);
 			UFileSystem::openReplaceWriteFromTemplateFile($templateDir . $ctrlTemplate, $filename, $variables);
 			$msgContent = "The <b>" . $controllerName . "</b> controller has been created in <b>" . UFileSystem::cleanFilePathname($filename) . "</b>." . $msgView;
-			if (isset($variables["%path%"]) && $variables["%path%"] !== "") {
-				$msgContent .= $this->_addMessageForRouteCreation($variables["%path%"], $jsCallback);
+			if (isset($variables["%routePath%"]) && $variables["%routePath%"] !== "") {
+				$msgContent .= $this->_addMessageForRouteCreation($variables["%routePath%"], $jsCallback);
 			}
 			$this->storeControllerNameInSession($controllersNS . "\\" . $controllerName);
 			$message = $this->showSimpleMessage($msgContent, "success", null, "checkmark circle", NULL, "msgGlobal");
