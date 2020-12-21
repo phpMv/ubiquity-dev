@@ -11,7 +11,7 @@ use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\creators\RestControllerCreator;
 use Ubiquity\utils\base\CodeUtils;
 use Ubiquity\cache\CacheManager;
-use src\Ubiquity\creator\HasUsesTrait;
+use Ubiquity\creator\HasUsesTrait;
 
 /**
  * Base class for Scaffolding.
