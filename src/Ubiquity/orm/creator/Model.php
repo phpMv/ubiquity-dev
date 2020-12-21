@@ -129,6 +129,7 @@ class Model {
 		if ($this->namespace !== '' && $this->namespace !== null) {
 			$result .= 'namespace ' . $this->namespace . ";\n";
 		}
+		$result.="%uses%\n";
 		if(\count($annots)>0){
 			$result.=$this->annotsEngine->getAnnotationsStr($annots,'');
 		}
@@ -147,6 +148,12 @@ class Model {
 		}
 		$result .= $this->getToString();
 		$result .= "\n}";
+		$uses=$this->annotsEngine->getUses();
+		if(\count($uses)>0){
+			$result=\str_replace('%uses%',$this->getUsesStr($uses));
+		}else{
+			$result=\str_replace("%uses%\n",'');
+		}
 		return $result;
 	}
 
@@ -222,6 +229,14 @@ class Model {
 
 	public function setSimpleMembers($members) {
 		$this->simpleMembers = $members;
+	}
+	
+	public function getUsesStr($uses){
+		$r=[];
+		foreach ($uses as $use){
+			$r[]='use '.\ltrim($use,'\\').';';
+		}
+		return \implode("\n",$r);
 	}
 
 	public function getToString() {

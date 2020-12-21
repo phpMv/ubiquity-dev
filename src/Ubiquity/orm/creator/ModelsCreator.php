@@ -59,7 +59,7 @@ abstract class ModelsCreator {
 				$class->setDatabase($offset);
 
 				$fieldsInfos = $this->getFieldsInfos($table);
-				$class->setSimpleMembers(array_keys($fieldsInfos));
+				$class->setSimpleMembers(\array_keys($fieldsInfos));
 				$keys = $this->getPrimaryKeys($table);
 				foreach ($fieldsInfos as $field => $info) {
 					$member = new Member($engine,$field, $memberAccess);
