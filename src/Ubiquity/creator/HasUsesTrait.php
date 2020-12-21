@@ -1,5 +1,5 @@
 <?php
-namespace src\Ubiquity\creator;
+namespace Ubiquity\creator;
 
 trait HasUsesTrait {
 	protected $uses;

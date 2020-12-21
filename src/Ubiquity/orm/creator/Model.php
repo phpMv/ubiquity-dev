@@ -1,8 +1,7 @@
 <?php
 namespace Ubiquity\orm\creator;
 
-use Ubiquity\annotations\OneToManyAnnotation;
-use src\Ubiquity\creator\HasUsesTrait;
+use Ubiquity\creator\HasUsesTrait;
 
 /**
  * Allows the creation of a model class.

@@ -2,11 +2,10 @@
 
 namespace Ubiquity\scaffolding\creators;
 
-use Ubiquity\utils\base\UString;
 use Ubiquity\scaffolding\ScaffoldController;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
-use src\Ubiquity\creator\HasUsesTrait;
+use Ubiquity\creator\HasUsesTrait;
 
 /**
  * Base class for class creation in scaffolding.
