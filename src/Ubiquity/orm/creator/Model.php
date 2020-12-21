@@ -138,7 +138,7 @@ use HasUsesTrait;
 		}
 
 		if(\count($this->uses)>0){
-			$result.=$this->getUsesStr();
+			$result.="\n".$this->getUsesStr()."\n";
 		}
 
 		if(\count($this->annots)>0){
