@@ -142,7 +142,7 @@ use HasUsesTrait;
 		}
 
 		if(\count($this->annots)>0){
-			$result.=$this->annotsEngine->getAnnotationsStr($this->annots,'');
+			$result.=$this->annotsEngine->getAnnotationsStr($this->annots,'')."\n";
 		}
 		$result .= 'class ' . \ucfirst($this->name) . '{';
 		$members = $this->members;

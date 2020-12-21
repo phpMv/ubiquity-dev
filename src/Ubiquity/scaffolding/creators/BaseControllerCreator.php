@@ -1,5 +1,4 @@
 <?php
-
 namespace Ubiquity\scaffolding\creators;
 
 use Ubiquity\scaffolding\ScaffoldController;
@@ -19,11 +18,15 @@ use Ubiquity\creator\HasUsesTrait;
  */
 abstract class BaseControllerCreator {
 	use HasUsesTrait;
-	
+
 	protected $controllerName;
+
 	protected $routePath;
+
 	protected $views;
+
 	protected $controllerNS;
+
 	protected $templateName;
 
 	/**
@@ -34,20 +37,24 @@ abstract class BaseControllerCreator {
 
 	public function __construct($controllerName, $routePath, $views) {
 		$this->controllerName = $controllerName;
-		if($routePath!=null){
-			$this->routePath = '/'.\ltrim($routePath,'/');
+		if ($routePath != null) {
+			$this->routePath = '/' . \ltrim($routePath, '/');
 		}
 		$this->views = $views;
-		$this->controllerNS = Startup::getNS ( "controllers" );
+		$this->controllerNS = Startup::getNS("controllers");
 	}
 
-	protected function getRouteAnnotation($path){
-		return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,'route',['path'=>$path,'automated'=>true,'inherited'=>true])->asAnnotation();
+	protected function getRouteAnnotation($path) {
+		return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this, 'route', [
+			'path' => $path,
+			'automated' => true,
+			'inherited' => true
+		])->asAnnotation();
 	}
 
 	abstract public function create(ScaffoldController $scaffoldController);
 
-	abstract protected function addViews(&$uses, &$messages, &$classContent);
+	abstract protected function addViews(&$messages, &$classContent);
 
 	/**
 	 *
