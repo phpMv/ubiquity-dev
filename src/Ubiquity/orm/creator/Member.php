@@ -26,12 +26,15 @@ class Member {
 
 	private $access;
 	
+	private $container;
+	
 	/**
 	 * @var AnnotationsEngineInterface
 	 */
 	private $annotsEngine;
 
-	public function __construct($annotsEngine,$name, $access = 'private') {
+	public function __construct($container,$annotsEngine,$name, $access = 'private') {
+		$this->container=$container;
 		$this->annotsEngine=$annotsEngine;
 		$this->name = $name;
 		$this->annotations = [];
@@ -50,29 +53,29 @@ class Member {
 
 	public function setPrimary() {
 		if ($this->primary === false) {
-			$this->annotations[] = $this->annotsEngine->getAnnotation('id');
+			$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'id');
 			$this->primary = true;
 		}
 	}
 
 	public function setDbType($infos) {
-		$annot = $this->annotsEngine->getAnnotation('column',['name'=>$this->name,'dbType'=>$infos['Type'],'nullable'=>(\strtolower($infos['Nullable']) === 'yes')]);
+		$annot = $this->annotsEngine->getAnnotation($this->container,'column',['name'=>$this->name,'dbType'=>$infos['Type'],'nullable'=>(\strtolower($infos['Nullable']) === 'yes')]);
 		$this->annotations['column'] = $annot;
 	}
 
 	public function addManyToOne($name, $className, $nullable = false) {
-		$this->annotations[] = $this->annotsEngine->getAnnotation('manyToOne');
-		$joinColumn = $this->annotsEngine->getAnnotation('joinColumn',['name'=>$name,'className'=>$className,'nullable'=>$nullable]);
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'manyToOne');
+		$joinColumn = $this->annotsEngine->getAnnotation($this->container,'joinColumn',['name'=>$name,'className'=>$className,'nullable'=>$nullable]);
 		$this->annotations[] = $joinColumn;
 		$this->manyToOne = true;
 	}
 
 	public function addOneToMany($mappedBy, $className) {
-		$this->annotations[] = $this->annotsEngine->getAnnotation('oneToMany',['mappedBy'=>$mappedBy,'className'=>$className]);;
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'oneToMany',['mappedBy'=>$mappedBy,'className'=>$className]);;
 	}
 
 	private function addTransformer($name) {
-		$this->annotations[] = $this->annotsEngine->getAnnotation('transformer',['name'=>$name]);;
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'transformer',['name'=>$name]);;
 	}
 
 	/**
@@ -120,7 +123,7 @@ class Member {
 	}
 
 	public function addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = []) {
-		$manyToMany = $this->annotsEngine->getAnnotation('manyToMany',\compact('targetEntity','inversedBy'));
+		$manyToMany = $this->annotsEngine->getAnnotation($this->container,'manyToMany',\compact('targetEntity','inversedBy'));
 		$jtArray['name'] = $joinTable;
 		if (\count($joinColumns) == 2) {
 			$jtArray['joinColumns'] = $joinColumns;
@@ -129,7 +132,7 @@ class Member {
 			$jtArray['inverseJoinColumns'] = $inverseJoinColumns;
 		}
 		$this->annotations[] = $manyToMany;
-		$this->annotations[] = $this->annotsEngine->getAnnotation('joinTable',$jtArray);
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'joinTable',$jtArray);
 	}
 
 	public function getName() {
@@ -204,7 +207,7 @@ class Member {
 	}
 
 	public function addValidators() {
-		$parser = new ValidationModelGenerator($this->annotsEngine,$this->getDbType(), $this->name, ! $this->isNullable(), $this->primary);
+		$parser = new ValidationModelGenerator($this->container,$this->annotsEngine,$this->getDbType(), $this->name, ! $this->isNullable(), $this->primary);
 		$validators = $parser->parse();
 		if ($validators && \count($validators)) {
 			$this->annotations = \array_merge($this->annotations, $validators);

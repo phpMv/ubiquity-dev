@@ -2,6 +2,7 @@
 namespace Ubiquity\orm\creator;
 
 use Ubiquity\annotations\OneToManyAnnotation;
+use src\Ubiquity\creator\HasUsesTrait;
 
 /**
  * Allows the creation of a model class.
@@ -14,6 +15,7 @@ use Ubiquity\annotations\OneToManyAnnotation;
  *
  */
 class Model {
+use HasUsesTrait;
 
 	private $simpleMembers;
 
@@ -30,6 +32,8 @@ class Model {
 	private $memberAccess;
 	
 	private $annotsEngine;
+	
+	private $annots;
 
 	private function generateUniqName($member) {
 		$i = 1;
@@ -58,6 +62,7 @@ class Model {
 		$this->members = array();
 		$this->namespace = $namespace;
 		$this->memberAccess = $memberAccess;
+		$this->uses=[];
 	}
 
 	public function addMember(Member $member) {
@@ -69,7 +74,7 @@ class Model {
 		$this->checkForUniqName($member, $alternateName);
 		$nullable = false;
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($this->annotsEngine,$member, $this->memberAccess));
+			$this->addMember(new Member($this,$this->annotsEngine,$member, $this->memberAccess));
 			$nullable = $this->members[$name]->isNullable();
 			$this->removeMember($name);
 		}
@@ -102,7 +107,7 @@ class Model {
 	public function addOneToMany($member, $mappedBy, $className, $alternateName) {
 		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($this->annotsEngine,$member, $this->memberAccess));
+			$this->addMember(new Member($this,$this->annotsEngine,$member, $this->memberAccess));
 		}
 		$this->members[$member]->addOneToMany($mappedBy, $className);
 	}
@@ -110,28 +115,35 @@ class Model {
 	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = [], $alternateName = null) {
 		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($this->annotsEngine,$member, $this->memberAccess));
+			$this->addMember(new Member($this,$this->annotsEngine,$member, $this->memberAccess));
 		}
 		$this->members[$member]->addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns, $inverseJoinColumns);
 		return $member;
 	}
-
-	public function __toString() {
+	
+	public function addMainAnnots(){
 		$annots=[];
 		if ($this->database != null && $this->database !== 'default') {
-			$annots[]=$this->annotsEngine->getAnnotation('database',['name'=>$this->database]);
+			$annots[]=$this->annotsEngine->getAnnotation($this,'database',['name'=>$this->database]);
 		}
 		if ($this->table !== $this->name) {
-			$annots[]=$this->annotsEngine->getAnnotation('table',['name'=>$this->table]);
+			$annots[]=$this->annotsEngine->getAnnotation($this,'table',['name'=>$this->table]);
 		}
-		
+		$this->annots=$annots;
+	}
+
+	public function __toString() {
 		$result = "<?php\n";
 		if ($this->namespace !== '' && $this->namespace !== null) {
 			$result .= 'namespace ' . $this->namespace . ";\n";
 		}
-		$result.="%uses%\n";
-		if(\count($annots)>0){
-			$result.=$this->annotsEngine->getAnnotationsStr($annots,'');
+
+		if(\count($this->uses)>0){
+			$result.=$this->getUsesStr();
+		}
+
+		if(\count($this->annots)>0){
+			$result.=$this->annotsEngine->getAnnotationsStr($this->annots,'');
 		}
 		$result .= 'class ' . \ucfirst($this->name) . '{';
 		$members = $this->members;
@@ -148,12 +160,7 @@ class Model {
 		}
 		$result .= $this->getToString();
 		$result .= "\n}";
-		$uses=$this->annotsEngine->getUses();
-		if(\count($uses)>0){
-			$result=\str_replace('%uses%',$this->getUsesStr($uses),$result);
-		}else{
-			$result=\str_replace("%uses%\n",'',$result);
-		}
+
 		return $result;
 	}
 
@@ -230,14 +237,6 @@ class Model {
 	public function setSimpleMembers($members) {
 		$this->simpleMembers = $members;
 	}
-	
-	public function getUsesStr($uses){
-		$r=[];
-		foreach ($uses as $use){
-			$r[]='use '.\ltrim($use,'\\').';';
-		}
-		return \implode("\n",$r);
-	}
 
 	public function getToString() {
 		$field = $this->getToStringField();
@@ -253,4 +252,5 @@ class Model {
 		$result .= "\t}\n";
 		return $result;
 	}
+	
 }

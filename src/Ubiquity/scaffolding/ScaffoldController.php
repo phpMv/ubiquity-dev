@@ -11,6 +11,7 @@ use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\creators\RestControllerCreator;
 use Ubiquity\utils\base\CodeUtils;
 use Ubiquity\cache\CacheManager;
+use src\Ubiquity\creator\HasUsesTrait;
 
 /**
  * Base class for Scaffolding.
@@ -23,6 +24,7 @@ use Ubiquity\cache\CacheManager;
  *
  */
 abstract class ScaffoldController {
+use HasUsesTrait;
 
 	protected $config;
 
@@ -226,7 +228,7 @@ abstract class ScaffoldController {
 			}
 			
 
-			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($name,$routeProperties)->asAnnotation();;
+			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,$name,$routeProperties)->asAnnotation();;
 		}
 		return '';
 	}

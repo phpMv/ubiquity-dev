@@ -35,37 +35,33 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$resource = $this->resource;
 		$crudControllerName = $this->controllerName;
 		$classContent = "";
-		$uses = [ ];
 		$controllerNS = $this->controllerNS;
 		$messages = [ ];
-		$routeName = $crudControllerName;
+
 		$scaffoldController->_createMethod ( "public", "__construct", "", "", "\n\t\tparent::__construct();\n\$this->model=\"{$resource}\";" );
 
 		if (isset ( $this->crudDatas )) {
-			$uses [] = "use controllers\\crud\\datas\\{$crudControllerName}Datas;";
-			$uses [] = "use Ubiquity\\controllers\\crud\\CRUDDatas;";
+			$this->addUses("controllers\\crud\\datas\\{$crudControllerName}Datas","Ubiquity\\controllers\\crud\\CRUDDatas");
 
 			$classContent .= $scaffoldController->_createMethod ( "protected", "getAdminData", "", ": CRUDDatas", "\t\treturn new {$crudControllerName}Datas(\$this);" );
 			$messages [] = $this->createCRUDDatasClass ();
 		}
 
 		if (isset ( $this->crudViewer )) {
-			$uses [] = "use controllers\\crud\\viewers\\{$crudControllerName}Viewer;";
-			$uses [] = "use Ubiquity\\controllers\\crud\\viewers\\ModelViewer;";
+			$this->addUses("controllers\\crud\\viewers\\{$crudControllerName}Viewer","Ubiquity\\controllers\\crud\\viewers\\ModelViewer");
 
 			$classContent .= $scaffoldController->_createMethod ( "protected", "getModelViewer", "", ": ModelViewer", "\t\treturn new {$crudControllerName}Viewer(\$this);" );
 			$messages [] = $this->createModelViewerClass ();
 		}
 		if (isset ( $this->crudEvents )) {
-			$uses [] = "use controllers\\crud\\events\\{$crudControllerName}Events;";
-			$uses [] = "use Ubiquity\\controllers\\crud\\CRUDEvents;";
+			$this->addUses("controllers\\crud\\events\\{$crudControllerName}Events","Ubiquity\\controllers\\crud\\CRUDEvents");
 
 			$classContent .= $scaffoldController->_createMethod ( "protected", "getEvents", "", ": CRUDEvents", "\t\treturn new {$crudControllerName}Events(\$this);" );
 			$messages [] = $this->createEventsClass ();
 		}
 
 		if (isset ( $this->views )) {
-			$this->addViews ( $uses, $messages, $classContent );
+			$this->addViews ( $messages, $classContent );
 		}
 		$routePath = $this->controllerName;
 		$routeAnnot='';
@@ -74,26 +70,25 @@ class CrudControllerCreator extends BaseControllerCreator {
 			$routeAnnot=$this->getRouteAnnotation($this->routePath);
 		}
 		
-		$uses = implode ( "\n", $uses );
+		$uses = $this->getUsesStr();
 		$messages [] = $scaffoldController->_createController ( $crudControllerName, [ "%routePath%" => $routePath,"%route%" => $routeAnnot,"%resource%" => $resource,"%uses%" => $uses,"%namespace%" => $controllerNS,"%baseClass%" => "\\Ubiquity\\controllers\\crud\\CRUDController","%content%" => $classContent ], $this->templateName );
 		echo implode ( "\n", $messages );
 	}
 
-	protected function addViews(&$uses, &$messages, &$classContent) {
+	protected function addViews(&$messages, &$classContent) {
 		$crudControllerName = $this->controllerName;
 		$crudViews = explode ( ",", $this->views );
-		$uses [] = "use controllers\\crud\\files\\{$crudControllerName}Files;";
-		$uses [] = "use Ubiquity\\controllers\\crud\\CRUDFiles;";
+		$this->addUses("controllers\\crud\\files\\{$crudControllerName}Files","Ubiquity\\controllers\\crud\\CRUDFiles");
 		$classContent .= $this->scaffoldController->_createMethod ( "protected", "getFiles", "", ": CRUDFiles", "\t\treturn new {$crudControllerName}Files();" );
 		$classFilesContent = [ ];
 		foreach ( $crudViews as $file ) {
 			if (isset ( ScaffoldController::$views ["CRUD"] [$file] )) {
 				$frameworkViewname = ScaffoldController::$views ["CRUD"] [$file];
 				$this->scaffoldController->createAuthCrudView ( $frameworkViewname, $crudControllerName, $file );
-				$classFilesContent [] = $this->scaffoldController->_createMethod ( "public", "getView" . ucfirst ( $file ), "", "", "\t\treturn \"" . $crudControllerName . "/" . $file . ".html\";" );
+				$classFilesContent [] = $this->scaffoldController->_createMethod ( "public", "getView" . \ucfirst ( $file ), "", "", "\t\treturn \"" . $crudControllerName . "/" . $file . ".html\";" );
 			}
 		}
-		$messages [] = $this->createCRUDFilesClass ( implode ( "", $classFilesContent ) );
+		$messages [] = $this->createCRUDFilesClass ( \implode ( "", $classFilesContent ) );
 	}
 
 	protected function createCRUDDatasClass() {

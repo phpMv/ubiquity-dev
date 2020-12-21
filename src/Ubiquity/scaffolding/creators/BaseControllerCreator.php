@@ -6,6 +6,7 @@ use Ubiquity\utils\base\UString;
 use Ubiquity\scaffolding\ScaffoldController;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
+use src\Ubiquity\creator\HasUsesTrait;
 
 /**
  * Base class for class creation in scaffolding.
@@ -18,6 +19,8 @@ use Ubiquity\cache\CacheManager;
  *
  */
 abstract class BaseControllerCreator {
+	use HasUsesTrait;
+	
 	protected $controllerName;
 	protected $routePath;
 	protected $views;
@@ -40,7 +43,7 @@ abstract class BaseControllerCreator {
 	}
 
 	protected function getRouteAnnotation($path){
-		return CacheManager::getAnnotationsEngineInstance()->getAnnotation('route',['path'=>$path,'automated'=>true,'inherited'=>true])->asAnnotation();
+		return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,'route',['path'=>$path,'automated'=>true,'inherited'=>true])->asAnnotation();
 	}
 
 	abstract public function create(ScaffoldController $scaffoldController);
