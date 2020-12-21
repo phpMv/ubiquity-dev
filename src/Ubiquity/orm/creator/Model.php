@@ -150,9 +150,9 @@ class Model {
 		$result .= "\n}";
 		$uses=$this->annotsEngine->getUses();
 		if(\count($uses)>0){
-			$result=\str_replace('%uses%',$result,$this->getUsesStr($uses));
+			$result=\str_replace('%uses%',$this->getUsesStr($uses),$result);
 		}else{
-			$result=\str_replace("%uses%\n",$result,'');
+			$result=\str_replace("%uses%\n",'',$result);
 		}
 		return $result;
 	}
