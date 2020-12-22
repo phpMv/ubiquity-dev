@@ -18,8 +18,8 @@ class AuthControllerCreator extends BaseControllerCreator {
 
 	private $baseClass;
 
-	public function __construct($controllerName, $baseClass, $views = null, $routePath = "") {
-		parent::__construct($controllerName, $routePath, $views);
+	public function __construct($controllerName, $baseClass, $views = null, $routePath = "", $useViewInheritance = false) {
+		parent::__construct($controllerName, $routePath, $views,$useViewInheritance);
 		$this->baseClass = $baseClass;
 	}
 
@@ -71,7 +71,7 @@ class AuthControllerCreator extends BaseControllerCreator {
 		foreach ($authViews as $file) {
 			if (isset(ScaffoldController::$views["auth"][$file])) {
 				$frameworkViewname = ScaffoldController::$views["auth"][$file];
-				$scaffoldController->createAuthCrudView($frameworkViewname, $authControllerName, $file);
+				$scaffoldController->createAuthCrudView($frameworkViewname, $authControllerName, $file,$this->useViewInheritance);
 				$classFilesContent[] = $scaffoldController->_createMethod("public", "getView" . \ucfirst($file), "", "", "\t\treturn \"" . $authControllerName . "/" . $file . ".html\";");
 			}
 		}

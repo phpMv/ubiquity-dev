@@ -10,6 +10,8 @@ use Ubiquity\scaffolding\creators\AuthControllerCreator;
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\creators\RestControllerCreator;
 use Ubiquity\utils\base\CodeUtils;
+use Ubiquity\cache\CacheManager;
+use Ubiquity\creator\HasUsesTrait;
 
 /**
  * Base class for Scaffolding.
@@ -17,14 +19,15 @@ use Ubiquity\utils\base\CodeUtils;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.4
- * @package ubiquity.dev
- *         
+ * @version 1.0.5
+ * @category ubiquity.dev
+ *
  */
 abstract class ScaffoldController {
-
+	use HasUsesTrait;
+	
 	protected $config;
-
+	
 	public static $views = [
 		"CRUD" => [
 			"index" => "@framework/crud/index.html",
@@ -40,21 +43,21 @@ abstract class ScaffoldController {
 			"baseTemplate" => "@framework/auth/baseTemplate.html"
 		]
 	];
-
+	
 	public function getTemplateDir() {
 		return \dirname(__DIR__) . "/scaffolding/templates/";
 	}
-
+	
 	public function _refreshRest($refresh = false) {}
-
+	
 	public function initRestCache($refresh = true) {}
-
+	
 	protected abstract function storeControllerNameInSession($controller);
-
+	
 	public abstract function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null);
-
+	
 	protected abstract function _addMessageForRouteCreation($path, $jsCallback = "");
-
+	
 	public function _createMethod($access, $name, $parameters = "", $return = "", $content = "", $comment = "") {
 		$templateDir = $this->getTemplateDir();
 		$keyAndValues = [
@@ -67,7 +70,7 @@ abstract class ScaffoldController {
 		];
 		return UFileSystem::openReplaceInTemplateFile($templateDir . "method.tpl", $keyAndValues);
 	}
-
+	
 	public function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "") {
 		$message = "";
 		$templateDir = $this->getTemplateDir();
@@ -100,8 +103,8 @@ abstract class ScaffoldController {
 			]);
 			UFileSystem::openReplaceWriteFromTemplateFile($templateDir . $ctrlTemplate, $filename, $variables);
 			$msgContent = "The <b>" . $controllerName . "</b> controller has been created in <b>" . UFileSystem::cleanFilePathname($filename) . "</b>." . $msgView;
-			if (isset($variables["%path%"]) && $variables["%path%"] !== "") {
-				$msgContent .= $this->_addMessageForRouteCreation($variables["%path%"], $jsCallback);
+			if (isset($variables["%routePath%"]) && $variables["%routePath%"] !== "") {
+				$msgContent .= $this->_addMessageForRouteCreation($variables["%routePath%"], $jsCallback);
 			}
 			$this->storeControllerNameInSession($controllersNS . "\\" . $controllerName);
 			$message = $this->showSimpleMessage($msgContent, "success", null, "checkmark circle", NULL, "msgGlobal");
@@ -110,22 +113,22 @@ abstract class ScaffoldController {
 		}
 		return $message;
 	}
-
+	
 	public function addCrudController($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false) {
 		$crudController = new CrudControllerCreator($crudControllerName, $resource, $crudDatas, $crudViewer, $crudEvents, $crudViews, $routePath, $useViewInheritance);
 		$crudController->create($this);
 	}
-
-	public function addAuthController($authControllerName, $baseClass, $authViews = null, $routePath = "") {
-		$authCreator = new AuthControllerCreator($authControllerName, $baseClass, $authViews, $routePath);
+	
+	public function addAuthController($authControllerName, $baseClass, $authViews = null, $routePath = "", $useViewInheritance = false) {
+		$authCreator = new AuthControllerCreator($authControllerName, $baseClass, $authViews, $routePath,$useViewInheritance);
 		$authCreator->create($this);
 	}
-
+	
 	public function addRestController($restControllerName, $baseClass, $resource, $routePath = "", $reInit = true) {
 		$restCreator = new RestControllerCreator($restControllerName, $baseClass, $resource, $routePath);
 		$restCreator->create($this, $reInit);
 	}
-
+	
 	public function _createClass($template, $classname, $namespace, $uses, $extendsOrImplements, $classContent) {
 		$namespaceVar = "";
 		if (UString::isNotNull($namespace)) {
@@ -150,7 +153,7 @@ abstract class ScaffoldController {
 		}
 		return $message;
 	}
-
+	
 	public function _newAction($controller, $action, $parameters = null, $content = '', $routeInfo = null, $createView = false, $theme = null) {
 		$templateDir = $this->getTemplateDir();
 		$msgContent = "";
@@ -169,7 +172,7 @@ abstract class ScaffoldController {
 						$content .= "\n\t\t\$this->loadView('" . $viewname . "');\n";
 						$msgContent .= "<br>Created view : <b>" . $viewname . "</b>";
 					}
-					$routeAnnotation = $this->generateRouteAnnotation($routeInfo, $templateDir);
+					$routeAnnotation = $this->generateRouteAnnotation($routeInfo);
 					if ($routeAnnotation != '') {
 						$msgContent .= $this->_addMessageForRouteCreation($routeInfo["path"]);
 					}
@@ -198,52 +201,38 @@ abstract class ScaffoldController {
 			}
 		}
 	}
-
-	protected function getMethods(array $methods) {
-		$result = [];
-		foreach ($methods as $method) {
-			$result[] = '"' . $method . '"';
-		}
-		return "[" . \implode(",", $result) . "]";
-	}
-
-	protected function generateRouteAnnotation($routeInfo, $templateDir) {
-		$routeAnnotation = "";
-		if (is_array($routeInfo)) {
+	
+	protected function generateRouteAnnotation($routeInfo) {
+		if (\is_array($routeInfo)) {
 			$name = "route";
 			$path = $routeInfo["path"];
-			$routeProperties = [
-				'"' . $path . '"'
-			];
+			$routeProperties['path']=$path;
 			$strMethods = $routeInfo["methods"];
 			if (UString::isNotNull($strMethods)) {
 				$methods = \explode(",", $strMethods);
 				$methodsCount = \count($methods);
 				if ($methodsCount > 1) {
-					$routeProperties[] = '"methods"=>' . $this->getMethods($methods);
+					$routeProperties['methods'] = $methods;
 				} elseif ($methodsCount == 1) {
 					$name = \current($methods);
 				}
 			}
 			if (isset($routeInfo["ck-Cache"])) {
-				$routeProperties[] = '"cache"=>true';
+				$routeProperties['cache'] = true;
 				if (isset($routeInfo["duration"])) {
 					$duration = $routeInfo["duration"];
 					if (\ctype_digit($duration)) {
-						$routeProperties[] = '"duration"=>' . $duration;
+						$routeProperties['duration'] = $duration;
 					}
 				}
 			}
-			$routeProperties = \implode(",", $routeProperties);
-			$routeAnnotation = UFileSystem::openReplaceInTemplateFile($templateDir . "annotation.tpl", [
-				"%name%" => $name,
-				"%properties%" => $routeProperties
-			]);
-
-			return $routeAnnotation;
+			
+			
+			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,$name,$routeProperties)->asAnnotation();;
 		}
+		return '';
 	}
-
+	
 	protected function _createViewOp($controller, $action, $theme = null) {
 		$prefix = "";
 		if (! isset($theme) || $theme == '') {
@@ -261,7 +250,7 @@ abstract class ScaffoldController {
 		]);
 		return $viewName;
 	}
-
+	
 	public function createAuthCrudView($frameworkName, $controllerName, $newName, $useViewInheritance) {
 		$folder = \ROOT . \DS . "views" . \DS . $controllerName;
 		UFileSystem::safeMkdir($folder);
@@ -297,9 +286,8 @@ abstract class ScaffoldController {
 			return UFileSystem::save($folder . \DS . $newName . ".html", implode("", $content));
 		}
 	}
-
+	
 	public function setConfig($config) {
 		$this->config = $config;
 	}
 }
-
