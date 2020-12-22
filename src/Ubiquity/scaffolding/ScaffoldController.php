@@ -10,8 +10,6 @@ use Ubiquity\scaffolding\creators\AuthControllerCreator;
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\creators\RestControllerCreator;
 use Ubiquity\utils\base\CodeUtils;
-use Ubiquity\cache\CacheManager;
-use Ubiquity\creator\HasUsesTrait;
 
 /**
  * Base class for Scaffolding.
@@ -19,12 +17,11 @@ use Ubiquity\creator\HasUsesTrait;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.5
- * @category ubiquity.dev
- *
+ * @version 1.0.4
+ * @package ubiquity.dev
+ *         
  */
 abstract class ScaffoldController {
-use HasUsesTrait;
 
 	protected $config;
 
@@ -103,8 +100,8 @@ use HasUsesTrait;
 			]);
 			UFileSystem::openReplaceWriteFromTemplateFile($templateDir . $ctrlTemplate, $filename, $variables);
 			$msgContent = "The <b>" . $controllerName . "</b> controller has been created in <b>" . UFileSystem::cleanFilePathname($filename) . "</b>." . $msgView;
-			if (isset($variables["%routePath%"]) && $variables["%routePath%"] !== "") {
-				$msgContent .= $this->_addMessageForRouteCreation($variables["%routePath%"], $jsCallback);
+			if (isset($variables["%path%"]) && $variables["%path%"] !== "") {
+				$msgContent .= $this->_addMessageForRouteCreation($variables["%path%"], $jsCallback);
 			}
 			$this->storeControllerNameInSession($controllersNS . "\\" . $controllerName);
 			$message = $this->showSimpleMessage($msgContent, "success", null, "checkmark circle", NULL, "msgGlobal");
@@ -172,7 +169,7 @@ use HasUsesTrait;
 						$content .= "\n\t\t\$this->loadView('" . $viewname . "');\n";
 						$msgContent .= "<br>Created view : <b>" . $viewname . "</b>";
 					}
-					$routeAnnotation = $this->generateRouteAnnotation($routeInfo);
+					$routeAnnotation = $this->generateRouteAnnotation($routeInfo, $templateDir);
 					if ($routeAnnotation != '') {
 						$msgContent .= $this->_addMessageForRouteCreation($routeInfo["path"]);
 					}
@@ -202,35 +199,49 @@ use HasUsesTrait;
 		}
 	}
 
-	protected function generateRouteAnnotation($routeInfo) {
-		if (\is_array($routeInfo)) {
+	protected function getMethods(array $methods) {
+		$result = [];
+		foreach ($methods as $method) {
+			$result[] = '"' . $method . '"';
+		}
+		return "[" . \implode(",", $result) . "]";
+	}
+
+	protected function generateRouteAnnotation($routeInfo, $templateDir) {
+		$routeAnnotation = "";
+		if (is_array($routeInfo)) {
 			$name = "route";
 			$path = $routeInfo["path"];
-			$routeProperties['path']=$path;	
+			$routeProperties = [
+				'"' . $path . '"'
+			];
 			$strMethods = $routeInfo["methods"];
 			if (UString::isNotNull($strMethods)) {
 				$methods = \explode(",", $strMethods);
 				$methodsCount = \count($methods);
 				if ($methodsCount > 1) {
-					$routeProperties['methods'] = $methods;
+					$routeProperties[] = '"methods"=>' . $this->getMethods($methods);
 				} elseif ($methodsCount == 1) {
 					$name = \current($methods);
 				}
 			}
 			if (isset($routeInfo["ck-Cache"])) {
-				$routeProperties['cache'] = true;
+				$routeProperties[] = '"cache"=>true';
 				if (isset($routeInfo["duration"])) {
 					$duration = $routeInfo["duration"];
 					if (\ctype_digit($duration)) {
-						$routeProperties['duration'] = $duration;
+						$routeProperties[] = '"duration"=>' . $duration;
 					}
 				}
 			}
-			
+			$routeProperties = \implode(",", $routeProperties);
+			$routeAnnotation = UFileSystem::openReplaceInTemplateFile($templateDir . "annotation.tpl", [
+				"%name%" => $name,
+				"%properties%" => $routeProperties
+			]);
 
-			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,$name,$routeProperties)->asAnnotation();;
+			return $routeAnnotation;
 		}
-		return '';
 	}
 
 	protected function _createViewOp($controller, $action, $theme = null) {
@@ -251,19 +262,25 @@ use HasUsesTrait;
 		return $viewName;
 	}
 
-	public function createAuthCrudView($frameworkName, $controllerName, $newName) {
+	public function createAuthCrudView($frameworkName, $controllerName, $newName, $useViewInheritance) {
 		$folder = \ROOT . \DS . "views" . \DS . $controllerName;
 		UFileSystem::safeMkdir($folder);
 		try {
 			$teInstance = Startup::getTempateEngineInstance();
 			if (isset($teInstance)) {
-				$blocks = $teInstance->getBlockNames($frameworkName);
-				if (sizeof($blocks) > 0) {
-					$content = [
-						"{% extends \"" . $frameworkName . "\" %}\n"
-					];
-					foreach ($blocks as $blockname) {
-						$content[] = "{% block " . $blockname . " %}\n\t{{ parent() }}\n{% endblock %}\n";
+				if ($useViewInheritance) {
+					$blocks = $teInstance->getBlockNames($frameworkName);
+					if (sizeof($blocks) > 0) {
+						$content = [
+							"{% extends \"" . $frameworkName . "\" %}\n"
+						];
+						foreach ($blocks as $blockname) {
+							$content[] = "{% block " . $blockname . " %}\n\t{{ parent() }}\n{% endblock %}\n";
+						}
+					} else {
+						$content = [
+							$teInstance->getCode($frameworkName)
+						];
 					}
 				} else {
 					$content = [
