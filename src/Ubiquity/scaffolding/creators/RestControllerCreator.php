@@ -53,8 +53,9 @@ class RestControllerCreator extends BaseControllerCreator {
 				$routePath=$this->routePath;
 				$routeAnnot=$this->getRouteAnnotation($this->routePath);
 			}
-			$variables = [ '%uses%'=>$this->getUsesStr(),'%route%' => $routeAnnot,'%controllerName%' => $controllerName,'%namespace%' => $namespace,'%routePath%' => $routePath ,'%baseClass%'=>$this->baseClass];
+			$variables = [ '%route%' => $routeAnnot,'%controllerName%' => $controllerName,'%namespace%' => $namespace,'%routePath%' => $routePath ,'%baseClass%'=>$this->baseClass];
 			$this->addVariablesForReplacement ( $variables );
+			$variables ['%uses%'] = $this->getUsesStr();
 			UFileSystem::openReplaceWriteFromTemplateFile ( $templateDir . $this->templateName, $filename, $variables );
 			$messages [] = $scaffoldController->showSimpleMessage ( "The <b>" . $controllerName . "</b> Rest controller has been created in <b>" . UFileSystem::cleanPathname ( $filename ) . "</b>.", "success", "Rest creation", "checkmark circle", 30000, "msgGlobal" );
 			if (isset ( $reInit )) {
@@ -72,11 +73,10 @@ class RestControllerCreator extends BaseControllerCreator {
 		if($this->resource!=null){
 			$values['resource']=$this->resource;
 		}
-		$variables ["%restAnnot%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,'rest',$values)->asAnnotation();
-		
+		$variables ['%restAnnot%'] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,'rest',$values)->asAnnotation();
 	}
 
-	protected function addViews(&$uses, &$messages, &$classContent) {
+	protected function addViews(&$messages, &$classContent) {
 	}
 }
 
