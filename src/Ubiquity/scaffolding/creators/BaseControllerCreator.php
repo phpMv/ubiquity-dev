@@ -28,6 +28,8 @@ abstract class BaseControllerCreator {
 	protected $controllerNS;
 
 	protected $templateName;
+	
+	protected $useViewInheritance;
 
 	/**
 	 *
@@ -35,13 +37,14 @@ abstract class BaseControllerCreator {
 	 */
 	protected $scaffoldController;
 
-	public function __construct($controllerName, $routePath, $views) {
+	public function __construct($controllerName, $routePath, $views,$useViewInheritance) {
 		$this->controllerName = $controllerName;
 		if ($routePath != null) {
 			$this->routePath = '/' . \ltrim($routePath, '/');
 		}
 		$this->views = $views;
 		$this->controllerNS = Startup::getNS("controllers");
+		$this->useViewInheritance=$useViewInheritance;
 	}
 
 	protected function getRouteAnnotation($path) {

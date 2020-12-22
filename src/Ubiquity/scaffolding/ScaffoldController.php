@@ -114,8 +114,8 @@ use HasUsesTrait;
 		return $message;
 	}
 
-	public function addCrudController($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '') {
-		$crudController = new CrudControllerCreator($crudControllerName, $resource, $crudDatas, $crudViewer, $crudEvents, $crudViews, $routePath);
+	public function addCrudController($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false) {
+		$crudController = new CrudControllerCreator($crudControllerName, $resource, $crudDatas, $crudViewer, $crudEvents, $crudViews, $routePath, $useViewInheritance);
 		$crudController->create($this);
 	}
 

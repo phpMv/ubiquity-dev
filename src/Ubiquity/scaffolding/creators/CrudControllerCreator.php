@@ -21,8 +21,8 @@ class CrudControllerCreator extends BaseControllerCreator {
 	private $crudViewer;
 	private $crudEvents;
 
-	public function __construct($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '') {
-		parent::__construct ( $crudControllerName, $routePath, $crudViews );
+	public function __construct($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false) {
+		parent::__construct ( $crudControllerName, $routePath, $crudViews ,$useViewInheritance);
 		$this->resource = $resource;
 		$this->crudDatas = $crudDatas;
 		$this->crudViewer = $crudViewer;
