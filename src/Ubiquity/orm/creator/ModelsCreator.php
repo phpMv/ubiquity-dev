@@ -1,7 +1,6 @@
 <?php
 namespace Ubiquity\orm\creator;
 
-use Ubiquity\annotations\JoinColumnAnnotation;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\controllers\Startup;
 use Ubiquity\utils\base\UFileSystem;
