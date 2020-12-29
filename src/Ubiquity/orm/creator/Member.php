@@ -1,15 +1,8 @@
 <?php
 namespace Ubiquity\orm\creator;
 
-use Ubiquity\annotations\IdAnnotation;
-use Ubiquity\annotations\ManyToOneAnnotation;
-use Ubiquity\annotations\OneToManyAnnotation;
-use Ubiquity\annotations\ManyToManyAnnotation;
-use Ubiquity\annotations\JoinTableAnnotation;
-use Ubiquity\annotations\JoinColumnAnnotation;
-use Ubiquity\annotations\ColumnAnnotation;
 use Ubiquity\contents\validation\ValidationModelGenerator;
-use Ubiquity\annotations\TransformerAnnotation;
+use Ubiquity\annotations\AnnotationsEngineInterface;
 
 /**
  * Represents a data member in a model class.
@@ -32,8 +25,17 @@ class Member {
 	private $annotations;
 
 	private $access;
+	
+	private $container;
+	
+	/**
+	 * @var AnnotationsEngineInterface
+	 */
+	private $annotsEngine;
 
-	public function __construct($name, $access = 'private') {
+	public function __construct($container,$annotsEngine,$name, $access = 'private') {
+		$this->container=$container;
+		$this->annotsEngine=$annotsEngine;
 		$this->name = $name;
 		$this->annotations = [];
 		$this->primary = false;
@@ -44,57 +46,36 @@ class Member {
 	public function __toString() {
 		$annotationsStr = '';
 		if (sizeof($this->annotations) > 0) {
-			$annotationsStr = "\n\t/**";
-			$annotations = $this->annotations;
-			\array_walk($annotations, function ($item) {
-				return $item . '';
-			});
-			if (\sizeof($annotations) > 1) {
-				$annotationsStr .= "\n\t * " . implode("\n\t * ", $annotations);
-			} else {
-				$annotationsStr .= "\n\t * " . \end($annotations);
-			}
-			$annotationsStr .= "\n\t**/";
+			$annotationsStr = "\n".$this->annotsEngine->getAnnotationsStr($this->annotations);
 		}
 		return $annotationsStr . "\n\t{$this->access} $" . $this->name . ";\n";
 	}
 
 	public function setPrimary() {
 		if ($this->primary === false) {
-			$this->annotations[] = new IdAnnotation();
+			$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'id');
 			$this->primary = true;
 		}
 	}
 
 	public function setDbType($infos) {
-		$annot = new ColumnAnnotation();
-		$annot->name = $this->name;
-		$annot->dbType = $infos['Type'];
-		$annot->nullable = (\strtolower($infos['Nullable']) === 'yes');
-		$this->annotations["column"] = $annot;
+		$annot = $this->annotsEngine->getAnnotation($this->container,'column',['name'=>$this->name,'dbType'=>$infos['Type'],'nullable'=>(\strtolower($infos['Nullable']) === 'yes')]);
+		$this->annotations['column'] = $annot;
 	}
 
 	public function addManyToOne($name, $className, $nullable = false) {
-		$this->annotations[] = new ManyToOneAnnotation();
-		$joinColumn = new JoinColumnAnnotation();
-		$joinColumn->name = $name;
-		$joinColumn->className = $className;
-		$joinColumn->nullable = $nullable;
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'manyToOne');
+		$joinColumn = $this->annotsEngine->getAnnotation($this->container,'joinColumn',['name'=>$name,'className'=>$className,'nullable'=>$nullable]);
 		$this->annotations[] = $joinColumn;
 		$this->manyToOne = true;
 	}
 
 	public function addOneToMany($mappedBy, $className) {
-		$oneToMany = new OneToManyAnnotation();
-		$oneToMany->mappedBy = $mappedBy;
-		$oneToMany->className = $className;
-		$this->annotations[] = $oneToMany;
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'oneToMany',['mappedBy'=>$mappedBy,'className'=>$className]);;
 	}
 
 	private function addTransformer($name) {
-		$transformer = new TransformerAnnotation();
-		$transformer->name = $name;
-		$this->annotations[] = $transformer;
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'transformer',['name'=>$name]);;
 	}
 
 	/**
@@ -142,19 +123,16 @@ class Member {
 	}
 
 	public function addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = []) {
-		$manyToMany = new ManyToManyAnnotation();
-		$manyToMany->targetEntity = $targetEntity;
-		$manyToMany->inversedBy = $inversedBy;
-		$jt = new JoinTableAnnotation();
-		$jt->name = $joinTable;
+		$manyToMany = $this->annotsEngine->getAnnotation($this->container,'manyToMany',\compact('targetEntity','inversedBy'));
+		$jtArray['name'] = $joinTable;
 		if (\count($joinColumns) == 2) {
-			$jt->joinColumns = $joinColumns;
+			$jtArray['joinColumns'] = $joinColumns;
 		}
 		if (\count($inverseJoinColumns) == 2) {
-			$jt->inverseJoinColumns = $inverseJoinColumns;
+			$jtArray['inverseJoinColumns'] = $inverseJoinColumns;
 		}
 		$this->annotations[] = $manyToMany;
-		$this->annotations[] = $jt;
+		$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'joinTable',$jtArray);
 	}
 
 	public function getName() {
@@ -167,7 +145,7 @@ class Member {
 
 	public function getManyToOne() {
 		foreach ($this->annotations as $annotation) {
-			if ($annotation instanceof JoinColumnAnnotation) {
+			if ($this->annotsEngine->isManyToOne($annotation)) {
 				return $annotation;
 			}
 		}
@@ -179,14 +157,14 @@ class Member {
 	}
 
 	public function getGetter() {
-		$result = "\n\t public function get" . \ucfirst($this->name) . "(){\n";
+		$result = "\n\tpublic function get" . \ucfirst($this->name) . "(){\n";
 		$result .= "\t\t" . 'return $this->' . $this->name . ";\n";
 		$result .= "\t}\n";
 		return $result;
 	}
 
 	public function getSetter() {
-		$result = "\n\t public function set" . \ucfirst($this->name) . '($' . $this->name . "){\n";
+		$result = "\n\tpublic function set" . \ucfirst($this->name) . '($' . $this->name . "){\n";
 		$result .= "\t\t" . '$this->' . $this->name . '=$' . $this->name . ";\n";
 		$result .= "\t}\n";
 		return $result;
@@ -209,7 +187,7 @@ class Member {
 
 	public function isMany() {
 		foreach ($this->annotations as $annot) {
-			if (($annot instanceof OneToManyAnnotation) || ($annot instanceof ManyToManyAnnotation)) {
+			if ($this->annotsEngine->isMany($annot)) {
 				return true;
 			}
 		}
@@ -229,7 +207,7 @@ class Member {
 	}
 
 	public function addValidators() {
-		$parser = new ValidationModelGenerator($this->getDbType(), $this->name, ! $this->isNullable(), $this->primary);
+		$parser = new ValidationModelGenerator($this->container,$this->annotsEngine,$this->getDbType(), $this->name, ! $this->isNullable(), $this->primary);
 		$validators = $parser->parse();
 		if ($validators && \count($validators)) {
 			$this->annotations = \array_merge($this->annotations, $validators);

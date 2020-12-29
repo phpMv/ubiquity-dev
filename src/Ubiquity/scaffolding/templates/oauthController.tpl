@@ -1,5 +1,6 @@
 <?php
 %namespace%
+%uses%
 use Hybridauth\Adapter\AdapterInterface;
  /**
   * Controller %controllerName%

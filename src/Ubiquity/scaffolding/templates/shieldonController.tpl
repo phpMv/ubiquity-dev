@@ -6,9 +6,8 @@ namespace controllers;
  */
 class %controllerName% extends \Ubiquity\controllers\Controller {
 
-	/**
-	 * %route%
-	 */
+	
+	%route%
 	public function index() {
 		// Get Firewall instance from Shieldon Container.
 		$firewall = \Shieldon\Container::get('firewall');

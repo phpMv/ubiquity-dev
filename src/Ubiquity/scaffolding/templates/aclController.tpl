@@ -4,9 +4,7 @@
 use Ubiquity\controllers\Controller;
 use Ubiquity\security\acl\controllers\AclControllerTrait;
 
-/**
- * %route%
- */
+%route%
 class %controllerName% extends Controller {
 	use AclControllerTrait;
 

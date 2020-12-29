@@ -5,6 +5,7 @@ namespace Ubiquity\scaffolding\creators;
 use Ubiquity\scaffolding\ScaffoldController;
 use Ubiquity\controllers\rest\RestServer;
 use Ubiquity\utils\base\UFileSystem;
+use Ubiquity\cache\CacheManager;
 
 /**
  * Creates a Rest controller.
@@ -21,7 +22,9 @@ class RestControllerCreator extends BaseControllerCreator {
 	private $baseClass;
 	public function __construct($restControllerName, $baseClass,$resource='', $routePath = '') {
 		$this->controllerName = $restControllerName;
-		$this->routePath = $routePath;
+		if($routePath!=null){
+			$this->routePath = '/'.\ltrim($routePath,'/');
+		}
 		$this->resource=$resource;
 		$this->baseClass="\\".$baseClass;
 		$this->controllerNS = RestServer::getRestNamespace ();
@@ -39,16 +42,20 @@ class RestControllerCreator extends BaseControllerCreator {
 
 		$filename = $restControllersDir . \DS . $controllerName . ".php";
 		if (! \file_exists ( $filename )) {
-			$routeName = "";
 			$templateDir = $scaffoldController->getTemplateDir ();
 			$namespace = '';
-			if ($controllerNS != null)
+			if ($controllerNS != null){
 				$namespace = "namespace " . $controllerNS . ";";
-			if ($this->routePath != null) {
-				$routeName = $this->addRoute ( $this->routePath );
 			}
-			$variables = [ '%route%' => $this->routePath,'%controllerName%' => $controllerName,'%namespace%' => $namespace,'%routeName%' => $routeName ,'%baseClass%'=>$this->baseClass];
+			$routePath = $this->controllerName;
+			$routeAnnot='';
+			if ($this->routePath != null) {
+				$routePath=$this->routePath;
+				$routeAnnot=$this->getRouteAnnotation($this->routePath);
+			}
+			$variables = [ '%route%' => $routeAnnot,'%controllerName%' => $controllerName,'%namespace%' => $namespace,'%routePath%' => $routePath ,'%baseClass%'=>$this->baseClass];
 			$this->addVariablesForReplacement ( $variables );
+			$variables ['%uses%'] = $this->getUsesStr();
 			UFileSystem::openReplaceWriteFromTemplateFile ( $templateDir . $this->templateName, $filename, $variables );
 			$messages [] = $scaffoldController->showSimpleMessage ( "The <b>" . $controllerName . "</b> Rest controller has been created in <b>" . UFileSystem::cleanPathname ( $filename ) . "</b>.", "success", "Rest creation", "checkmark circle", 30000, "msgGlobal" );
 			if (isset ( $reInit )) {
@@ -62,12 +69,14 @@ class RestControllerCreator extends BaseControllerCreator {
 	}
 
 	protected function addVariablesForReplacement(&$variables) {
+		$values=[];
 		if($this->resource!=null){
-			$variables ["%resource%"] = $this->resource;
+			$values['resource']=$this->resource;
 		}
+		$variables ['%restAnnot%'] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,'rest',$values)->asAnnotation();
 	}
 
-	protected function addViews(&$uses, &$messages, &$classContent) {
+	protected function addViews(&$messages, &$classContent) {
 	}
 }
 

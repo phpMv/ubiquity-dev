@@ -1,7 +1,7 @@
 <?php
 namespace Ubiquity\orm\creator;
 
-use Ubiquity\annotations\OneToManyAnnotation;
+use Ubiquity\creator\HasUsesTrait;
 
 /**
  * Allows the creation of a model class.
@@ -14,6 +14,7 @@ use Ubiquity\annotations\OneToManyAnnotation;
  *
  */
 class Model {
+use HasUsesTrait;
 
 	private $simpleMembers;
 
@@ -28,6 +29,10 @@ class Model {
 	private $database;
 
 	private $memberAccess;
+	
+	private $annotsEngine;
+	
+	private $annots;
 
 	private function generateUniqName($member) {
 		$i = 1;
@@ -49,12 +54,14 @@ class Model {
 		}
 	}
 
-	public function __construct($name, $namespace = 'models', $memberAccess = 'private') {
+	public function __construct($annotsEngine,$name, $namespace = 'models', $memberAccess = 'private') {
+		$this->annotsEngine=$annotsEngine;
 		$this->table = $name;
 		$this->name = \ucfirst($name);
 		$this->members = array();
 		$this->namespace = $namespace;
 		$this->memberAccess = $memberAccess;
+		$this->uses=[];
 	}
 
 	public function addMember(Member $member) {
@@ -66,7 +73,7 @@ class Model {
 		$this->checkForUniqName($member, $alternateName);
 		$nullable = false;
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member, $this->memberAccess));
+			$this->addMember(new Member($this,$this->annotsEngine,$member, $this->memberAccess));
 			$nullable = $this->members[$name]->isNullable();
 			$this->removeMember($name);
 		}
@@ -83,7 +90,7 @@ class Model {
 		foreach ($this->members as $name => $member) {
 			$annotations = $member->getAnnotations();
 			foreach ($annotations as $annotation) {
-				if ($annotation instanceof OneToManyAnnotation) {
+				if ($this->annotsEngine->is('oneToMany',$annotation)) {
 					if ($annotation->className === $className) {
 						$toDelete[] = $name;
 						break;
@@ -99,7 +106,7 @@ class Model {
 	public function addOneToMany($member, $mappedBy, $className, $alternateName) {
 		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member, $this->memberAccess));
+			$this->addMember(new Member($this,$this->annotsEngine,$member, $this->memberAccess));
 		}
 		$this->members[$member]->addOneToMany($mappedBy, $className);
 	}
@@ -107,10 +114,21 @@ class Model {
 	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = [], $alternateName = null) {
 		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
-			$this->addMember(new Member($member, $this->memberAccess));
+			$this->addMember(new Member($this,$this->annotsEngine,$member, $this->memberAccess));
 		}
 		$this->members[$member]->addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns, $inverseJoinColumns);
 		return $member;
+	}
+	
+	public function addMainAnnots(){
+		$annots=[];
+		if ($this->database != null && $this->database !== 'default') {
+			$annots[]=$this->annotsEngine->getAnnotation($this,'database',['name'=>$this->database]);
+		}
+		if ($this->table !== $this->name) {
+			$annots[]=$this->annotsEngine->getAnnotation($this,'table',['name'=>$this->table]);
+		}
+		$this->annots=$annots;
 	}
 
 	public function __toString() {
@@ -118,11 +136,13 @@ class Model {
 		if ($this->namespace !== '' && $this->namespace !== null) {
 			$result .= 'namespace ' . $this->namespace . ";\n";
 		}
-		if ($this->database != null && $this->database !== 'default') {
-			$result .= $this->getAnnotation("database('{$this->database}')");
+
+		if(\count($this->uses)>0){
+			$result.="\n".$this->getUsesStr()."\n";
 		}
-		if ($this->table !== $this->name) {
-			$result .= $this->getAnnotation("table('{$this->table}')");
+
+		if(\count($this->annots)>0){
+			$result.=$this->annotsEngine->getAnnotationsStr($this->annots,'')."\n";
 		}
 		$result .= 'class ' . \ucfirst($this->name) . '{';
 		$members = $this->members;
@@ -139,6 +159,7 @@ class Model {
 		}
 		$result .= $this->getToString();
 		$result .= "\n}";
+
 		return $result;
 	}
 
@@ -164,7 +185,7 @@ class Model {
 				$count ++;
 			}
 		}
-		return $count == \sizeof($this->members);
+		return $count == \count($this->members);
 	}
 
 	public function getPrimaryKey() {
@@ -202,7 +223,7 @@ class Model {
 		$result = null;
 
 		foreach ($this->members as $member) {
-			if ($member->getDbType() !== 'mixed' && $member->isNullable() !== true && ! $member->isPrimary()) {
+			if ($member->getDbType() !== 'mixed' && ! $member->isPrimary()) {
 				$memberName = $member->getName();
 				if (! $member->isPassword()) {
 					$result = $memberName;
@@ -210,10 +231,6 @@ class Model {
 			}
 		}
 		return $result;
-	}
-
-	private function getAnnotation($content) {
-		return "/**\n * @{$content}\n*/\n";
 	}
 
 	public function setSimpleMembers($members) {
@@ -234,4 +251,5 @@ class Model {
 		$result .= "\t}\n";
 		return $result;
 	}
+	
 }

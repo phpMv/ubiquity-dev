@@ -4,7 +4,6 @@ namespace Ubiquity\scaffolding;
 use Ubiquity\utils\base\UFileSystem;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\devtools\utils\FileUtils;
-use Ubiquity\utils\base\UString;
 
 /**
  * Create a new command

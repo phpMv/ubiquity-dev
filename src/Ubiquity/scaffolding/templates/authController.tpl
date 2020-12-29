@@ -2,9 +2,7 @@
 %namespace%
 %uses%
 
- /**
-  * Auth Controller %controllerName%%route%
-  */
+%route%
 class %controllerName% extends %baseClass%{
 
 	protected function onConnect($connected) {
@@ -39,7 +37,7 @@ class %controllerName% extends %baseClass%{
 	}
 
 	public function _getBaseRoute() {
-		return '%routeName%';
+		return '%routePath%';
 	}
 	
 %content%

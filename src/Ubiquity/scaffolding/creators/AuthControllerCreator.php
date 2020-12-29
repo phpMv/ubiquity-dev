@@ -2,7 +2,6 @@
 namespace Ubiquity\scaffolding\creators;
 
 use Ubiquity\controllers\Startup;
-use Ubiquity\utils\base\UString;
 use Ubiquity\scaffolding\ScaffoldController;
 
 /**
@@ -19,8 +18,8 @@ class AuthControllerCreator extends BaseControllerCreator {
 
 	private $baseClass;
 
-	public function __construct($controllerName, $baseClass, $views = null, $routePath = "") {
-		parent::__construct($controllerName, $routePath, $views);
+	public function __construct($controllerName, $baseClass, $views = null, $routePath = "", $useViewInheritance = false) {
+		parent::__construct($controllerName, $routePath, $views,$useViewInheritance);
 		$this->baseClass = $baseClass;
 	}
 
@@ -29,31 +28,31 @@ class AuthControllerCreator extends BaseControllerCreator {
 		$classContent = "";
 		if ($this->baseClass == "\\Ubiquity\\controllers\\auth\\AuthController") {
 			$controllerTemplate = "authController.tpl";
-			$uses = [
-				"use Ubiquity\\utils\\http\\USession;",
-				"use Ubiquity\\utils\\http\\URequest;"
+			$this->uses = [
+				"Ubiquity\\utils\\http\\USession"=>true,
+				"Ubiquity\\utils\\http\\URequest"=>true
 			];
 		} else {
 			$controllerTemplate = "authController_.tpl";
-			$uses = [];
 		}
 		$controllerNS = $this->controllerNS;
 
 		$messages = [];
-		$routeName = $this->controllerName;
 		if (isset($this->views)) {
-			$this->addViews($uses, $messages, $classContent);
+			$this->addViews( $messages, $classContent);
 		}
+		
+		$routePath = $this->controllerName;
+		$routeAnnot='';
+
 		if ($this->routePath != null) {
-			if (UString::isNotNull($this->routePath)) {
-				$routeName = $this->addRoute($this->routePath);
-			}
+			$routeAnnot=$this->getRouteAnnotation($this->routePath);
+			$routePath=$this->routePath;
 		}
-		$uses = implode("\n", $uses);
 		$messages[] = $scaffoldController->_createController($this->controllerName, [
-			"%routeName%" => $routeName,
-			"%route%" => $this->routePath,
-			"%uses%" => $uses,
+			"%routePath%" => $routePath,
+			"%route%" => $routeAnnot,
+			"%uses%" => $this->getUsesStr(),
 			"%namespace%" => $controllerNS,
 			"%baseClass%" => $this->baseClass,
 			"%content%" => $classContent
@@ -61,19 +60,19 @@ class AuthControllerCreator extends BaseControllerCreator {
 		echo implode("\n", $messages);
 	}
 
-	protected function addViews(&$uses, &$messages, &$classContent) {
+	protected function addViews( &$messages, &$classContent) {
 		$scaffoldController = $this->scaffoldController;
 		$authControllerName = $this->controllerName;
 		$authViews = explode(",", $this->views);
-		$uses[] = "use controllers\\auth\\files\\{$authControllerName}Files;";
-		$uses[] = "use Ubiquity\\controllers\\auth\\AuthFiles;";
+		$this->addUse("controllers\\auth\\files\\{$authControllerName}Files");
+		$this->addUse("Ubiquity\\controllers\\auth\\AuthFiles");
 		$classContent .= $scaffoldController->_createMethod("protected", "getFiles", "", ": AuthFiles", "\t\treturn new {$authControllerName}Files();");
 		$classFilesContent = [];
 		foreach ($authViews as $file) {
 			if (isset(ScaffoldController::$views["auth"][$file])) {
 				$frameworkViewname = ScaffoldController::$views["auth"][$file];
-				$scaffoldController->createAuthCrudView($frameworkViewname, $authControllerName, $file);
-				$classFilesContent[] = $scaffoldController->_createMethod("public", "getView" . ucfirst($file), "", "", "\t\treturn \"" . $authControllerName . "/" . $file . ".html\";");
+				$scaffoldController->createAuthCrudView($frameworkViewname, $authControllerName, $file,$this->useViewInheritance);
+				$classFilesContent[] = $scaffoldController->_createMethod("public", "getView" . \ucfirst($file), "", "", "\t\treturn \"" . $authControllerName . "/" . $file . ".html\";");
 			}
 		}
 		$messages[] = $this->createAuthFilesClass($scaffoldController, implode("", $classFilesContent));

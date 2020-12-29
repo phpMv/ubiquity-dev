@@ -1,10 +1,10 @@
 <?php
-
 namespace Ubiquity\scaffolding\creators;
 
-use Ubiquity\utils\base\UString;
 use Ubiquity\scaffolding\ScaffoldController;
 use Ubiquity\controllers\Startup;
+use Ubiquity\cache\CacheManager;
+use Ubiquity\creator\HasUsesTrait;
 
 /**
  * Base class for class creation in scaffolding.
@@ -17,11 +17,19 @@ use Ubiquity\controllers\Startup;
  *
  */
 abstract class BaseControllerCreator {
+	use HasUsesTrait;
+
 	protected $controllerName;
+
 	protected $routePath;
+
 	protected $views;
+
 	protected $controllerNS;
+
 	protected $templateName;
+	
+	protected $useViewInheritance;
 
 	/**
 	 *
@@ -29,25 +37,27 @@ abstract class BaseControllerCreator {
 	 */
 	protected $scaffoldController;
 
-	public function __construct($controllerName, $routePath, $views) {
+	public function __construct($controllerName, $routePath, $views,$useViewInheritance) {
 		$this->controllerName = $controllerName;
-		$this->routePath = $routePath;
+		if ($routePath != null) {
+			$this->routePath = '/' . \ltrim($routePath, '/');
+		}
 		$this->views = $views;
-		$this->controllerNS = Startup::getNS ( "controllers" );
+		$this->controllerNS = Startup::getNS("controllers");
+		$this->useViewInheritance=$useViewInheritance;
 	}
 
-	protected function addRoute(&$routePath) {
-		if (! UString::startswith ( $routePath, "/" )) {
-			$routePath = "/" . $routePath;
-		}
-		$routeName = $routePath;
-		$routePath = "\n * @route(\"{$routePath}\",\"inherited\"=>true,\"automated\"=>true)";
-		return $routeName;
+	protected function getRouteAnnotation($path) {
+		return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this, 'route', [
+			'path' => $path,
+			'automated' => true,
+			'inherited' => true
+		])->asAnnotation();
 	}
 
 	abstract public function create(ScaffoldController $scaffoldController);
 
-	abstract protected function addViews(&$uses, &$messages, &$classContent);
+	abstract protected function addViews(&$messages, &$classContent);
 
 	/**
 	 *

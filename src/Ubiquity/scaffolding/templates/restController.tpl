@@ -1,10 +1,10 @@
 <?php
 %namespace%
 
-/**
- * Rest Controller %controllerName%%route%
- * @rest("resource"=>"%resource%")
- */
+%uses%
+
+%restAnnot%
+%route%
 class %controllerName% extends %baseClass% {
 
 }

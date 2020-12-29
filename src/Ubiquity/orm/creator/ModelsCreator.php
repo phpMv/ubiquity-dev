@@ -13,7 +13,7 @@ use Ubiquity\orm\DAO;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.5
+ * @version 1.0.6
  * @category ubiquity.dev
  *
  */
@@ -40,6 +40,7 @@ abstract class ModelsCreator {
 	}
 
 	public function create($config, $initCache = true, $singleTable = null, $offset = 'default', $memberAccess = 'private') {
+		$engine=CacheManager::getAnnotationsEngineInstance();
 		$this->init($config, $offset);
 		$this->memberAccess = $memberAccess;
 		$dirPostfix = '';
@@ -54,14 +55,14 @@ abstract class ModelsCreator {
 			CacheManager::checkCache($config);
 
 			foreach ($this->tables as $table) {
-				$class = new Model($table, $config['mvcNS']['models'] . $nsPostfix, $memberAccess);
+				$class = new Model($engine,$table, $config['mvcNS']['models'] . $nsPostfix, $memberAccess);
 				$class->setDatabase($offset);
 
 				$fieldsInfos = $this->getFieldsInfos($table);
-				$class->setSimpleMembers(array_keys($fieldsInfos));
+				$class->setSimpleMembers(\array_keys($fieldsInfos));
 				$keys = $this->getPrimaryKeys($table);
 				foreach ($fieldsInfos as $field => $info) {
-					$member = new Member($field, $memberAccess);
+					$member = new Member($class,$engine,$field, $memberAccess);
 					if (\in_array($field, $keys)) {
 						$member->setPrimary();
 					}
@@ -70,6 +71,7 @@ abstract class ModelsCreator {
 					$member->setTransformer();
 					$class->addMember($member);
 				}
+				$class->addMainAnnots();
 				$this->classes[$table] = $class;
 			}
 			$this->createRelations();
@@ -134,7 +136,7 @@ abstract class ModelsCreator {
 		foreach ($this->classes as $table => $class) {
 			if ($class->isAssociation() === true) {
 				$members = $class->getManyToOneMembers();
-				if (sizeof($members) == 2) {
+				if (\count($members) == 2) {
 					$manyToOne1 = $members[0]->getManyToOne();
 					$manyToOne2 = $members[1]->getManyToOne();
 					$table1 = $this->getTableName($manyToOne1->className);
@@ -156,7 +158,7 @@ abstract class ModelsCreator {
 		}
 	}
 
-	protected function getJoinTableArray(Model $class, JoinColumnAnnotation $joinColumn) {
+	protected function getJoinTableArray(Model $class, object $joinColumn) {
 		$pk = $class->getPrimaryKey();
 		$fk = $joinColumn->name;
 		$dFk = $class->getDefaultFk();
