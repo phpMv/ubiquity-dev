@@ -74,40 +74,40 @@ abstract class ScaffoldController {
 	public function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "") {
 		$message = "";
 		$templateDir = $this->getTemplateDir();
-		$controllersNS = \rtrim(Startup::getNS("controllers"), "\\");
+		$controllersNS = \rtrim(Startup::getNS('controllers'), "\\");
 		$controllersDir = \ROOT . \DS . str_replace("\\", \DS, $controllersNS);
 		$controllerName = \ucfirst($controllerName);
 		$filename = $controllersDir . \DS . $controllerName . ".php";
 		if (\file_exists($filename) === false) {
 			$namespace = "";
-			if ($controllersNS !== "") {
-				$namespace = "namespace " . $controllersNS . ";";
+			if ($controllersNS !== '') {
+				$namespace = 'namespace ' . $controllersNS . ';';
 			}
-			$msgView = "";
-			$indexContent = "";
+			$msgView = '';
+			$indexContent = '';
 			if ($hasView) {
-				$viewDir = \ROOT . \DS . "views" . \DS . $controllerName . \DS;
+				$viewDir = \ROOT . \DS . 'views' . \DS . $controllerName . \DS;
 				UFileSystem::safeMkdir($viewDir);
-				$viewName = $viewDir . \DS . "index.html";
-				UFileSystem::openReplaceWriteFromTemplateFile($templateDir . "view.tpl", $viewName, [
-					"%controllerName%" => $controllerName,
-					"%actionName%" => "index"
+				$viewName = $viewDir . \DS . 'index.html';
+				UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', $viewName, [
+					'%controllerName%' => $controllerName,
+					'%actionName%' => "index"
 				]);
 				$msgView = "<br>The default view associated has been created in <b>" . UFileSystem::cleanPathname(\ROOT . \DS . $viewDir) . "</b>";
 				$indexContent = "\$this->loadView(\"" . $controllerName . "/index.html\");";
 			}
 			$variables = \array_merge($variables, [
-				"%controllerName%" => $controllerName,
-				"%indexContent%" => $indexContent,
-				"%namespace%" => $namespace
+				'%controllerName%' => $controllerName,
+				'%indexContent%' => $indexContent,
+				'%namespace%' => $namespace
 			]);
 			UFileSystem::openReplaceWriteFromTemplateFile($templateDir . $ctrlTemplate, $filename, $variables);
 			$msgContent = "The <b>" . $controllerName . "</b> controller has been created in <b>" . UFileSystem::cleanFilePathname($filename) . "</b>." . $msgView;
-			if (isset($variables["%routePath%"]) && $variables["%routePath%"] !== "") {
-				$msgContent .= $this->_addMessageForRouteCreation($variables["%routePath%"], $jsCallback);
+			if (isset($variables['%routePath%']) && $variables['%routePath%'] !== '') {
+				$msgContent .= $this->_addMessageForRouteCreation($variables['%routePath%'], $jsCallback);
 			}
 			$this->storeControllerNameInSession($controllersNS . "\\" . $controllerName);
-			$message = $this->showSimpleMessage($msgContent, "success", null, "checkmark circle", NULL, "msgGlobal");
+			$message = $this->showSimpleMessage($msgContent, 'success', null, 'checkmark circle', NULL, 'msgGlobal');
 		} else {
 			$message = $this->showSimpleMessage("The file <b>" . $filename . "</b> already exists.<br>Can not create the <b>" . $controllerName . "</b> controller!", "warning", null, "warning circle", 100000, "msgGlobal");
 		}
@@ -130,21 +130,21 @@ abstract class ScaffoldController {
 	}
 	
 	public function _createClass($template, $classname, $namespace, $uses, $extendsOrImplements, $classContent) {
-		$namespaceVar = "";
+		$namespaceVar = '';
 		if (UString::isNotNull($namespace)) {
 			$namespaceVar = "namespace {$namespace};";
 		}
 		$variables = [
-			"%classname%" => $classname,
-			"%namespace%" => $namespaceVar,
-			"%uses%" => $uses,
-			"%extendsOrImplements%" => $extendsOrImplements,
-			"%classContent%" => $classContent
+			'%classname%' => $classname,
+			'%namespace%' => $namespaceVar,
+			'%uses%' => $uses,
+			'%extendsOrImplements%' => $extendsOrImplements,
+			'%classContent%' => $classContent
 		];
 		$templateDir = $this->getTemplateDir();
 		$directory = UFileSystem::getDirFromNamespace($namespace);
 		UFileSystem::safeMkdir($directory);
-		$filename = UFileSystem::cleanFilePathname($directory . \DS . $classname . ".php");
+		$filename = UFileSystem::cleanFilePathname($directory . \DS . $classname . '.php');
 		if (! file_exists($filename)) {
 			UFileSystem::openReplaceWriteFromTemplateFile($templateDir . $template, $filename, $variables);
 			$message = $this->showSimpleMessage("The <b>" . $classname . "</b> class has been created in <b>" . $filename . "</b>.", "success", "Creation", "checkmark circle");
@@ -158,14 +158,14 @@ abstract class ScaffoldController {
 		$templateDir = $this->getTemplateDir();
 		$msgContent = "";
 		$r = new \ReflectionClass($controller);
-		if (! method_exists($controller, $action)) {
+		if (! \method_exists($controller, $action)) {
 			$ctrlFilename = $r->getFileName();
 			$content = CodeUtils::indent($content, 2);
 			$classCode = UIntrospection::getClassCode($controller);
 			if ($classCode !== false) {
-				$fileContent = \implode("", $classCode);
+				$fileContent = \implode('', $classCode);
 				$fileContent = \trim($fileContent);
-				$posLast = \strrpos($fileContent, "}");
+				$posLast = \strrpos($fileContent, '}');
 				if ($posLast !== false) {
 					if ($createView) {
 						$viewname = $this->_createViewOp(ClassUtils::getClassSimpleName($controller), $action, $theme);
@@ -178,10 +178,10 @@ abstract class ScaffoldController {
 					}
 					$parameters = CodeUtils::cleanParameters($parameters);
 					$actionContent = UFileSystem::openReplaceInTemplateFile($templateDir . "action.tpl", [
-						"%route%" => "\n" . $routeAnnotation ?? '',
-						"%actionName%" => $action,
-						"%parameters%" => $parameters,
-						"%content%" => $content
+						'%route%' => "\n" . $routeAnnotation ?? '',
+						'%actionName%' => $action,
+						'%parameters%' => $parameters,
+						'%content%' => $content
 					]);
 					$fileContent = \substr_replace($fileContent, "\n%content%", $posLast - 1, 0);
 					if (! CodeUtils::isValidCode('<?php ' . $content)) {
@@ -204,12 +204,12 @@ abstract class ScaffoldController {
 	
 	protected function generateRouteAnnotation($routeInfo) {
 		if (\is_array($routeInfo)) {
-			$name = "route";
-			$path = $routeInfo["path"];
+			$name = 'route';
+			$path = $routeInfo['path'];
 			$routeProperties['path']=$path;
-			$strMethods = $routeInfo["methods"];
+			$strMethods = $routeInfo['methods'];
 			if (UString::isNotNull($strMethods)) {
-				$methods = \explode(",", $strMethods);
+				$methods = \explode(',', $strMethods);
 				$methodsCount = \count($methods);
 				if ($methodsCount > 1) {
 					$routeProperties['methods'] = $methods;
@@ -217,10 +217,10 @@ abstract class ScaffoldController {
 					$name = \current($methods);
 				}
 			}
-			if (isset($routeInfo["ck-Cache"])) {
+			if (isset($routeInfo['ck-Cache'])) {
 				$routeProperties['cache'] = true;
-				if (isset($routeInfo["duration"])) {
-					$duration = $routeInfo["duration"];
+				if (isset($routeInfo['duration'])) {
+					$duration = $routeInfo['duration'];
 					if (\ctype_digit($duration)) {
 						$routeProperties['duration'] = $duration;
 					}
@@ -234,25 +234,25 @@ abstract class ScaffoldController {
 	}
 	
 	protected function _createViewOp($controller, $action, $theme = null) {
-		$prefix = "";
+		$prefix = '';
 		if (! isset($theme) || $theme == '') {
-			$theme = $this->config["templateEngineOptions"]["activeTheme"] ?? null;
+			$theme = $this->config['templateEngineOptions']['activeTheme'] ?? null;
 		}
 		if ($theme != null) {
 			$prefix = 'themes/' . $theme . '/';
 		}
-		$viewName = $prefix . $controller . "/" . $action . ".html";
-		UFileSystem::safeMkdir(\ROOT . \DS . "views" . \DS . $prefix . $controller);
+		$viewName = $prefix . $controller . '/' . $action . ".html";
+		UFileSystem::safeMkdir(\ROOT . \DS . 'views' . \DS . $prefix . $controller);
 		$templateDir = $this->getTemplateDir();
-		UFileSystem::openReplaceWriteFromTemplateFile($templateDir . "view.tpl", \ROOT . \DS . "views" . \DS . $viewName, [
-			"%controllerName%" => $controller,
-			"%actionName%" => $action
+		UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', \ROOT . \DS . 'views' . \DS . $viewName, [
+			'%controllerName%' => $controller,
+			'%actionName%' => $action
 		]);
 		return $viewName;
 	}
 	
 	public function createAuthCrudView($frameworkName, $controllerName, $newName, $useViewInheritance) {
-		$folder = \ROOT . \DS . "views" . \DS . $controllerName;
+		$folder = \ROOT . \DS . 'views' . \DS . $controllerName;
 		UFileSystem::safeMkdir($folder);
 		try {
 			$teInstance = Startup::getTempateEngineInstance();
@@ -283,7 +283,7 @@ abstract class ScaffoldController {
 			];
 		}
 		if (isset($content)) {
-			return UFileSystem::save($folder . \DS . $newName . ".html", implode("", $content));
+			return UFileSystem::save($folder . \DS . $newName . '.html', implode('', $content));
 		}
 	}
 	
