@@ -74,8 +74,10 @@ use HasUsesTrait;
 		$nullable = false;
 		if (\array_key_exists($member, $this->members) === false) {
 			$this->addMember(new Member($this,$this->annotsEngine,$member, $this->memberAccess));
-			$nullable = $this->members[$name]->isNullable();
-			$this->removeMember($name);
+			if(isset($this->members[$name])){
+				$nullable = $this->members[$name]->isNullable();
+				$this->removeMember($name);
+			}
 		}
 		$this->members[$member]->addManyToOne($name, $className, $nullable);
 	}
