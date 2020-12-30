@@ -86,7 +86,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 		foreach ( $crudViews as $file ) {
 			if (isset ( ScaffoldController::$views ['CRUD'] [$file] )) {
 				$frameworkViewname = ScaffoldController::$views ['CRUD'] [$file];
-				$this->scaffoldController->createAuthCrudView ( $frameworkViewname, $crudControllerName, $file );
+				$this->scaffoldController->createAuthCrudView ( $frameworkViewname, $crudControllerName, $file ,$this->useViewInheritance);
 				$classFilesContent [] = $this->scaffoldController->_createMethod ( 'public', 'getView' . \ucfirst ( $file ), '', '', "\t\treturn \"" . $crudControllerName . "/" . $file . ".html\";" );
 			}
 		}
