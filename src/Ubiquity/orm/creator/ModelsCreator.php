@@ -107,8 +107,8 @@ abstract class ModelsCreator {
 				foreach ($fks as $fk) {
 					$field = \lcfirst($table);
 					$fkTable = $fk['TABLE_NAME'];
-					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . 's', \lcfirst($table), $this->classes[$fkTable]->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']) . 's');
-					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk['COLUMN_NAME']), $class->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']));
+					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . 's', \lcfirst($table), $this->classes[$fkTable]->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']??$field) . 's');
+					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk['COLUMN_NAME']), $class->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']??$field));
 				}
 			}
 		}
