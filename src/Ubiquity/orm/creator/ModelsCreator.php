@@ -12,7 +12,7 @@ use Ubiquity\orm\DAO;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.6
+ * @version 1.0.7
  * @category ubiquity.dev
  *
  */
@@ -116,7 +116,17 @@ abstract class ModelsCreator {
 	}
 
 	protected function getAlternateName($fkName, $pkName) {
-		$alter = \trim(\trim($fkName, \ucfirst($pkName)), '_');
+		$alter=$fkName;
+		$pkName=\ucfirst($pkName);
+		if (\substr($fkName, 0, \strlen($pkName)) == $pkName) {
+			$alter = \substr($fkName, \strlen($pkName));
+		}
+		$needle_position = \strlen($pkName) * -1;
+		
+		if (\substr($alter, $needle_position) == $pkName) {
+			$alter = \substr($alter, 0, $needle_position);
+		}
+		$alter = \trim($alter, '_');
 		return \lcfirst($alter);
 	}
 
