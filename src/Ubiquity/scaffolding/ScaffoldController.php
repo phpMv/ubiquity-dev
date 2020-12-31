@@ -165,24 +165,40 @@ abstract class ScaffoldController {
 			if ($classCode !== false) {
 				$fileContent = \implode('', $classCode);
 				$fileContent = \trim($fileContent);
-				$posLast = \strrpos($fileContent, '}');
-				if ($posLast !== false) {
 					if ($createView) {
 						$viewname = $this->_createViewOp(ClassUtils::getClassSimpleName($controller), $action, $theme);
 						$content .= "\n\t\t\$this->loadView('" . $viewname . "');\n";
 						$msgContent .= "<br>Created view : <b>" . $viewname . "</b>";
 					}
 					$routeAnnotation = $this->generateRouteAnnotation($routeInfo);
+
 					if ($routeAnnotation != '') {
 						$msgContent .= $this->_addMessageForRouteCreation($routeInfo["path"]);
+						if(\count($this->getUses())>0){
+							$namespace='namespace '.$r->getNamespaceName().";\n";
+							$posUses = \strpos($fileContent, $namespace);
+							if($posUses!==false){
+								$posUses+=strlen($namespace);
+								$uses=$this->uses;
+								foreach ($uses as $use=>$_){
+									if(\strpos($fileContent, 'use '.$use)!==false){
+										unset($this->uses[$use]);
+									}
+								}
+								if(\count($this->getUses())>0){
+									$fileContent = \substr_replace($fileContent, "\n".$this->getUsesStr(), $posUses - 1, 0);
+								}
+							}
+						}
 					}
 					$parameters = CodeUtils::cleanParameters($parameters);
 					$actionContent = UFileSystem::openReplaceInTemplateFile($templateDir . "action.tpl", [
-						'%route%' => "\n" . $routeAnnotation ?? '',
+						'%route%' => "\n\t" . $routeAnnotation ?? '',
 						'%actionName%' => $action,
 						'%parameters%' => $parameters,
 						'%content%' => $content
 					]);
+					$posLast = \strrpos($fileContent, '}');
 					$fileContent = \substr_replace($fileContent, "\n%content%", $posLast - 1, 0);
 					if (! CodeUtils::isValidCode('<?php ' . $content)) {
 						echo $this->showSimpleMessage("Errors parsing action content!", "warning", "Creation", "warning circle", null, "msgControllers");
@@ -195,7 +211,7 @@ abstract class ScaffoldController {
 							echo $this->showSimpleMessage($msgContent, "success", "Creation", "info circle", null, "msgControllers");
 						}
 					}
-				}
+				
 			} else {
 				echo $this->showSimpleMessage("The action {$action} already exists in {$controller}!", "error", "Creation", "warning circle", null, "msgControllers");
 			}
@@ -228,7 +244,7 @@ abstract class ScaffoldController {
 			}
 			
 			
-			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,$name,$routeProperties)->asAnnotation();;
+			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,$name,$routeProperties)->asAnnotation();
 		}
 		return '';
 	}
