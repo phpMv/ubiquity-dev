@@ -2,7 +2,7 @@
 namespace Ubiquity\creator;
 
 trait HasUsesTrait {
-	protected $uses;
+	protected $uses=[];
 	public function getUses(){
 		return \array_keys($this->uses);
 	}

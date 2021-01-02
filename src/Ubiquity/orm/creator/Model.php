@@ -225,7 +225,7 @@ use HasUsesTrait;
 		$result = null;
 
 		foreach ($this->members as $member) {
-			if ($member->getDbType() !== 'mixed' && ! $member->isPrimary()) {
+			if ($member->getDbType() !== 'mixed' && $member->isNullable() !== true && ! $member->isPrimary()) {
 				$memberName = $member->getName();
 				if (! $member->isPassword()) {
 					$result = $memberName;
