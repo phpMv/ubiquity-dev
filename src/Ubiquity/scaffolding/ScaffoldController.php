@@ -96,11 +96,13 @@ abstract class ScaffoldController {
 				$msgView = "<br>The default view associated has been created in <b>" . UFileSystem::cleanPathname(\ROOT . \DS . $viewDir) . "</b>";
 				$indexContent = "\$this->loadView(\"" . $controllerName . "/index.html\");";
 			}
-			$variables = \array_merge($variables, [
+			$variables = \array_merge([
 				'%controllerName%' => $controllerName,
 				'%indexContent%' => $indexContent,
-				'%namespace%' => $namespace
-			]);
+				'%namespace%' => $namespace,
+				'%route%'=>'',
+				'%uses%'=>''
+			],$variables);
 			UFileSystem::openReplaceWriteFromTemplateFile($templateDir . $ctrlTemplate, $filename, $variables);
 			$msgContent = "The <b>" . $controllerName . "</b> controller has been created in <b>" . UFileSystem::cleanFilePathname($filename) . "</b>." . $msgView;
 			if (isset($variables['%routePath%']) && $variables['%routePath%'] !== '') {

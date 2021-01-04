@@ -1,6 +1,8 @@
 <?php
 namespace controllers;
 
+%uses%
+
 /**
  * Controller Shieldon
  */

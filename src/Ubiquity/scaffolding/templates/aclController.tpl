@@ -1,6 +1,7 @@
 <?php
 %namespace%
 
+%uses%
 use Ubiquity\controllers\Controller;
 use Ubiquity\security\acl\controllers\AclControllerTrait;
 
@@ -9,7 +10,7 @@ class %controllerName% extends Controller {
 	use AclControllerTrait;
 
 	public function index() {
-
+		%indexContent%
 	}
 
 	public function _getRole() {

@@ -1,11 +1,9 @@
 <?php
 %namespace%
 
+%uses%
 use Ubiquity\controllers\seo\SeoController;
 
-/**
- * SEO Controller %controllerName%
- */
 class %controllerName% extends SeoController {
 
 	public function __construct(){
@@ -14,9 +12,7 @@ class %controllerName% extends SeoController {
 		$this->seoTemplateFilename="%sitemapTemplate%";
 	}
 	
-	 /**
-	  * %route%
-	  */
+	%route%
 	public function index(){
 		return parent::index();
 	}
