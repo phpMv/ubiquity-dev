@@ -35,8 +35,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$resource = $this->resource;
 		$crudControllerName = $this->controllerName;
 		$classContent = '';
-		$controllerNS = $this->controllerNS;
-		$nsc=\trim($controllerNS,'\\');
+		$nsc=\trim($this->controllerNS,'\\');
 		$messages = [ ];
 
 		$scaffoldController->_createMethod ( 'public', '__construct', '', '', "\n\t\tparent::__construct();\n\$this->model=\"{$resource}\";" );
@@ -72,7 +71,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 		}
 		
 		$uses = $this->getUsesStr();
-		$messages [] = $scaffoldController->_createController ( $crudControllerName, [ '%routePath%' => $routePath,'%route%' => $routeAnnot,'%resource%' => $resource,'%uses%' => $uses,'%namespace%' => $controllerNS,'%baseClass%' => "\\Ubiquity\\controllers\\crud\\CRUDController",'%content%' => $classContent ], $this->templateName );
+		$messages [] = $scaffoldController->_createController ( $crudControllerName, [ '%routePath%' => $routePath,'%route%' => $routeAnnot,'%resource%' => $resource,'%uses%' => $uses,'%namespace%' => $this->getNamespaceStr(),'%baseClass%' => "\\Ubiquity\\controllers\\crud\\CRUDController",'%content%' => $classContent ], $this->templateName );
 		echo implode ( "\n", $messages );
 	}
 

@@ -35,7 +35,6 @@ class AuthControllerCreator extends BaseControllerCreator {
 		} else {
 			$controllerTemplate = "authController_.tpl";
 		}
-		$controllerNS = $this->controllerNS;
 
 		$messages = [];
 		if (isset($this->views)) {
@@ -53,7 +52,7 @@ class AuthControllerCreator extends BaseControllerCreator {
 			"%routePath%" => $routePath,
 			"%route%" => $routeAnnot,
 			"%uses%" => $this->getUsesStr(),
-			"%namespace%" => $controllerNS,
+			"%namespace%" => $this->getNamespaceStr(),
 			"%baseClass%" => $this->baseClass,
 			"%content%" => $classContent
 		], $controllerTemplate);

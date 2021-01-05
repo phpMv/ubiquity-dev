@@ -46,6 +46,13 @@ abstract class BaseControllerCreator {
 		$this->controllerNS = Startup::getNS("controllers");
 		$this->useViewInheritance=$useViewInheritance;
 	}
+	
+	protected function getNamespaceStr(){
+		if($this->controllerNS==null){
+			return '';
+		}
+		return 'namespace '. \trim($this->controllerNS,'\\').';';
+	}
 
 	protected function getRouteAnnotation($path) {
 		return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this, 'route', [
