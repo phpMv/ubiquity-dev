@@ -52,7 +52,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 		if (isset ( $this->crudViewer )) {
 			$this->addUses("{$nsc}\\crud\\viewers\\{$crudControllerName}Viewer","Ubiquity\\controllers\\crud\\viewers\\ModelViewer");
 
-			$classContent .= $scaffoldController->_createMethod ( 'protected', 'getModelViewer', '', ': ModelViewer', "\t\treturn new {$crudControllerName}Viewer(\$this);" );
+			$classContent .= $scaffoldController->_createMethod ( 'protected', 'getModelViewer', '', ': ModelViewer', "\t\treturn new {$crudControllerName}Viewer(\$this,\$this->style);" );
 			$messages [] = $this->createModelViewerClass ();
 		}
 		if (isset ( $this->crudEvents )) {
