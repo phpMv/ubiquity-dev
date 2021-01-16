@@ -116,8 +116,8 @@ abstract class ScaffoldController {
 		return $message;
 	}
 	
-	public function addCrudController($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false) {
-		$crudController = new CrudControllerCreator($crudControllerName, $resource, $crudDatas, $crudViewer, $crudEvents, $crudViews, $routePath, $useViewInheritance);
+	public function addCrudController($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false,$style='') {
+		$crudController = new CrudControllerCreator($crudControllerName, $resource, $crudDatas, $crudViewer, $crudEvents, $crudViews, $routePath, $useViewInheritance,$style);
 		$crudController->create($this);
 	}
 	

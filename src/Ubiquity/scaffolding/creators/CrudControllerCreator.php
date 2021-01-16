@@ -20,14 +20,16 @@ class CrudControllerCreator extends BaseControllerCreator {
 	private $crudDatas;
 	private $crudViewer;
 	private $crudEvents;
+	private $style;
 
-	public function __construct($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false) {
+	public function __construct($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false,$style='') {
 		parent::__construct ( $crudControllerName, $routePath, $crudViews ,$useViewInheritance);
 		$this->resource = $resource;
 		$this->crudDatas = $crudDatas;
 		$this->crudViewer = $crudViewer;
 		$this->crudEvents = $crudEvents;
 		$this->templateName = 'crudController.tpl';
+		$this->style = $style;
 	}
 
 	public function create(ScaffoldController $scaffoldController) {
@@ -71,7 +73,17 @@ class CrudControllerCreator extends BaseControllerCreator {
 		}
 		
 		$uses = $this->getUsesStr();
-		$messages [] = $scaffoldController->_createController ( $crudControllerName, [ '%routePath%' => $routePath,'%route%' => $routeAnnot,'%resource%' => $resource,'%uses%' => $uses,'%namespace%' => $this->getNamespaceStr(),'%baseClass%' => "\\Ubiquity\\controllers\\crud\\CRUDController",'%content%' => $classContent ], $this->templateName );
+		$messages [] = $scaffoldController->_createController ( $crudControllerName, [ 
+			'%routePath%' => $routePath,
+			'%route%' => $routeAnnot,
+			'%resource%' => $resource,
+			'%uses%' => $uses,
+			'%namespace%' => $this->getNamespaceStr(),
+			'%baseClass%' => "\\Ubiquity\\controllers\\crud\\CRUDController",
+			'%content%' => $classContent,
+			'%style%'=>$this->style
+		]
+			, $this->templateName );
 		echo implode ( "\n", $messages );
 	}
 
