@@ -177,10 +177,10 @@ abstract class ScaffoldController {
 					if ($routeAnnotation != '') {
 						$msgContent .= $this->_addMessageForRouteCreation($routeInfo["path"]);
 						if(\count($this->getUses())>0){
-							$namespace='namespace '.$r->getNamespaceName().";\n";
+							$namespace='namespace '.$r->getNamespaceName().";";
 							$posUses = \strpos($fileContent, $namespace);
 							if($posUses!==false){
-								$posUses+=strlen($namespace);
+								$posUses+=\strlen($namespace)+1;
 								$uses=$this->uses;
 								foreach ($uses as $use=>$_){
 									if(\strpos($fileContent, 'use '.$use)!==false){
