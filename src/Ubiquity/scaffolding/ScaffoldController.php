@@ -223,7 +223,7 @@ abstract class ScaffoldController {
 	
 	private function generateRouteName(string $controllerName,string $action){
 		$ctrl=\str_ireplace('controller','',$controllerName);
-		return \ucfirst($ctrl) . '.' . $action;
+		return \lcfirst($ctrl) . '.' . $action;
 	}
 	
 	protected function generateRouteAnnotation($routeInfo,$controllerName,$action) {
