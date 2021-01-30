@@ -19,7 +19,7 @@ use Ubiquity\creator\HasUsesTrait;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.5
+ * @version 1.0.6
  * @category ubiquity.dev
  *
  */
@@ -167,12 +167,13 @@ abstract class ScaffoldController {
 			if ($classCode !== false) {
 				$fileContent = \implode('', $classCode);
 				$fileContent = \trim($fileContent);
+				$ctrlName=ClassUtils::getClassSimpleName($controller);
 					if ($createView) {
-						$viewname = $this->_createViewOp(ClassUtils::getClassSimpleName($controller), $action, $theme);
+						$viewname = $this->_createViewOp($ctrlName, $action, $theme);
 						$content .= "\n\t\t\$this->loadView('" . $viewname . "');\n";
 						$msgContent .= "<br>Created view : <b>" . $viewname . "</b>";
 					}
-					$routeAnnotation = $this->generateRouteAnnotation($routeInfo);
+					$routeAnnotation = $this->generateRouteAnnotation($routeInfo,$ctrlName,$action);
 
 					if ($routeAnnotation != '') {
 						$msgContent .= $this->_addMessageForRouteCreation($routeInfo["path"]);
@@ -220,7 +221,12 @@ abstract class ScaffoldController {
 		}
 	}
 	
-	protected function generateRouteAnnotation($routeInfo) {
+	private function generateRouteName(string $controllerName,string $action){
+		$ctrl=\str_ireplace('controller','',$controllerName);
+		return \ucfirst($ctrl) . '.' . $action;
+	}
+	
+	protected function generateRouteAnnotation($routeInfo,$controllerName,$action) {
 		if (\is_array($routeInfo)) {
 			$name = 'route';
 			$path = $routeInfo['path'];
@@ -244,7 +250,7 @@ abstract class ScaffoldController {
 					}
 				}
 			}
-			
+			$routeProperties['name']=$this->generateRouteName($controllerName, $action);
 			
 			return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this,$name,$routeProperties)->asAnnotation();
 		}
