@@ -279,7 +279,7 @@ abstract class ScaffoldController {
 		$folder = \ROOT . \DS . 'views' . \DS . $controllerName;
 		UFileSystem::safeMkdir($folder);
 		try {
-			$teInstance = Startup::getTempateEngineInstance();
+			$teInstance = Startup::getTemplateEngineInstance();
 			if (isset($teInstance)) {
 				if ($useViewInheritance) {
 					$blocks = $teInstance->getBlockNames($frameworkName);
