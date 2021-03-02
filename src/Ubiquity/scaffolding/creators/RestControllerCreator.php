@@ -7,6 +7,7 @@ use Ubiquity\scaffolding\ScaffoldController;
 use Ubiquity\controllers\rest\RestServer;
 use Ubiquity\utils\base\UFileSystem;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\controllers\rest\RestBaseController;
 
 /**
  * Creates a Rest controller.
@@ -45,7 +46,11 @@ class RestControllerCreator extends BaseControllerCreator {
 
 		$filename = $restControllersDir . \DS . $controllerName . ".php";
 		if (! \file_exists ( $filename )) {
-			$templateDir = $scaffoldController->getTemplateDir ();
+			$attrFolder='';
+			if(\class_exists('\\Ubiquity\\attributes\\AttributesEngine')){
+				$attrFolder='attributes/';
+			}
+			$templateDir = $scaffoldController->getTemplateDir ().$attrFolder;
 			$namespace = '';
 			if ($controllerNS != null){
 				$namespace = "namespace " . $controllerNS . ";";
@@ -54,7 +59,8 @@ class RestControllerCreator extends BaseControllerCreator {
 			$routeAnnot='';
 			if ($this->routePath != null) {
 				$routePath=$this->routePath;
-				$routeAnnot=$this->getRouteAnnotation($this->routePath);
+				$automatedAndInherited=$this->baseClass===RestBaseController::class;
+				$routeAnnot=$this->getRouteAnnotation($this->routePath,$automatedAndInherited,$automatedAndInherited);
 			}
 			$variables = [ '%route%' => $routeAnnot,'%controllerName%' => $controllerName,'%namespace%' => $namespace,'%routePath%' => $routePath ,'%baseClass%'=>$this->baseClass];
 			$this->addVariablesForReplacement ( $variables );

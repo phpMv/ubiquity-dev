@@ -4,6 +4,11 @@
 %uses%
 use Ubiquity\controllers\rest\api\jsonapi\JsonApiResponseFormatter;
 use Ubiquity\controllers\rest\ResponseFormatter;
+use Ubiquity\attributes\items\router\Delete;
+use Ubiquity\attributes\items\router\Get;
+use Ubiquity\attributes\items\router\Options;
+use Ubiquity\attributes\items\router\Post;
+use Ubiquity\attributes\items\router\Put;
 
 %restAnnot%
 %route%
@@ -22,6 +27,7 @@ class %controllerName% extends %baseClass% {
 	 *
 	 * @route("{resource}/","methods"=>["get"],"priority"=>0)
 	 */
+	#[Get('{resource}',priority: 0)]
 	public function all($resource){
 		$this->getAll_($resource);
 	}
@@ -34,6 +40,7 @@ class %controllerName% extends %baseClass% {
 	 *
 	 * @route("{resource}/{id}/","methods"=>["get"],"priority"=>1000)
 	 */
+	#[Get('{resource}/{id}', priority: 1000)]
 	public function one($resource,$id){
 		$this->getOne_($resource,$id);
 	}
@@ -47,6 +54,7 @@ class %controllerName% extends %baseClass% {
 	 * @route("{resource}/{id}/","methods"=>["delete"],"priority"=>0)
 	 * @authorization
 	 */
+	#[Delete('{resource}/{id}')]
 	public function delete($resource,...$id){
 		$this->delete_($resource,...$id);
 	}
@@ -56,6 +64,7 @@ class %controllerName% extends %baseClass% {
 	*
 	* @route("{resource}","methods"=>["options"],"priority"=>3000)
 	*/
+	#[Options('{resource}',priority: 3000)]
 	public function options(...$resource) {
 	}
 
@@ -67,6 +76,7 @@ class %controllerName% extends %baseClass% {
 	* @route("{resource}/","methods"=>["post"],"priority"=>0)
 	* @authorization
 	*/
+	#[Post('{resource}',priority: 0)]
 	public function add($resource) {
 		parent::add_($resource);
 	}
@@ -80,6 +90,7 @@ class %controllerName% extends %baseClass% {
 	 * @route("{resource}/{id}","methods"=>["patch"],"priority"=>0)
 	 * @authorization
 	 */
+	#[Put('{resource}/{id}',priority: 0)]
 	public function update($resource,...$id ){
 		parent::update_($resource,...$id);
 	}

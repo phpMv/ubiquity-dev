@@ -2,17 +2,12 @@
 %namespace%
 
 %uses%
-use Ubiquity\controllers\rest\api\jsonapi\JsonApiResponseFormatter;
-use Ubiquity\controllers\rest\ResponseFormatter;
 
 %restAnnot%
 %route%
 class %controllerName% extends %baseClass% {
-	protected function getResponseFormatter(): ResponseFormatter {
-		return new JsonApiResponseFormatter('%routePath%');
-	}
-	
-		/**
+
+	/**
 	 * Returns all the instances from the model $resource.
 	 * Query parameters:
 	 * - **include**: A string of associated members to load, comma separated (e.g. users,groups,organization...), or a boolean: true for all members, false for none (default: true).
@@ -73,7 +68,7 @@ class %controllerName% extends %baseClass% {
 
 	/**
 	 * Updates an existing instance of $resource.
-	 * Data attributes are send in data[attributes] request body (in JSON format)
+	 * Data attributes are send in request body (in JSON format)
 	 *
 	 * @param string $resource The resource (model) to use
 	 *

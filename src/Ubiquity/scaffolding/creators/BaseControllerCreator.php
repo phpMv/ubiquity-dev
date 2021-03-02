@@ -54,11 +54,11 @@ abstract class BaseControllerCreator {
 		return 'namespace '. \trim($this->controllerNS,'\\').';';
 	}
 
-	protected function getRouteAnnotation($path) {
+	protected function getRouteAnnotation($path, $automated=true, $inherited=true) {
 		return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this, 'route', [
 			'path' => $path,
-			'automated' => true,
-			'inherited' => true
+			'automated' => $automated,
+			'inherited' => $inherited
 		])->asAnnotation();
 	}
 
