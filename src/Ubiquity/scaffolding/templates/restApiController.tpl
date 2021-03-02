@@ -2,8 +2,8 @@
 %namespace%
 
 %uses%
-use Ubiquity\controllers\rest\api\jsonapi\JsonApiResponseFormatter;
-use Ubiquity\controllers\rest\ResponseFormatter;
+use Ubiquity\controllers\rest\formatters\ResponseFormatter;
+use Ubiquity\controllers\rest\formatters\JsonApiResponseFormatter;
 
 %restAnnot%
 %route%

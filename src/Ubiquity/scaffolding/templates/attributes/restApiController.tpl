@@ -2,8 +2,8 @@
 %namespace%
 
 %uses%
-use Ubiquity\controllers\rest\api\jsonapi\JsonApiResponseFormatter;
-use Ubiquity\controllers\rest\ResponseFormatter;
+use Ubiquity\controllers\rest\formatters\ResponseFormatter;
+use Ubiquity\controllers\rest\formatters\JsonApiResponseFormatter;
 use Ubiquity\attributes\items\router\Delete;
 use Ubiquity\attributes\items\router\Get;
 use Ubiquity\attributes\items\router\Options;
