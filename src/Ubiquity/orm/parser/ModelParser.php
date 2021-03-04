@@ -4,6 +4,7 @@ namespace Ubiquity\orm\parser;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\contents\transformation\TransformersManager;
 use Ubiquity\exceptions\TransformerException;
+use Ubiquity\db\utils\DbTypes;
 
 /**
  * Parse model annotation for cache generation.
@@ -105,14 +106,23 @@ class ModelParser {
 			$this->fieldNames[$propName] = $fieldName;
 			$this->memberNames[$fieldName] = $propName;
 			$nullable = Reflexion::isNullable($modelClass, $propName);
+			
 			$serializable = Reflexion::isSerializable($modelClass, $propName);
-			if ($nullable)
-				$this->nullableMembers[] = $propName;
-			if (! $serializable)
+
+			if (! $serializable){
 				$this->notSerializableMembers[] = $propName;
+			}
 			$type = Reflexion::getDbType($modelClass, $propName);
 			if ($type === false) {
 				$type = 'mixed';
+			}
+			
+			if(\array_search($fieldName, $primaryKeys)!==false && DbTypes::isInt($type)){
+				$nullable=true;
+			}
+			
+			if ($nullable){
+				$this->nullableMembers[] = $propName;
 			}
 			$this->fieldTypes[$propName] = $type;
 			$accesseur = 'set' . \ucfirst($propName);

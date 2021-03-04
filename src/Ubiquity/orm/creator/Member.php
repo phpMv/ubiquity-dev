@@ -3,6 +3,7 @@ namespace Ubiquity\orm\creator;
 
 use Ubiquity\contents\validation\ValidationModelGenerator;
 use Ubiquity\annotations\AnnotationsEngineInterface;
+use Ubiquity\db\utils\DbTypes;
 
 /**
  * Represents a data member in a model class.
@@ -154,6 +155,10 @@ class Member {
 
 	public function isPrimary() {
 		return $this->primary;
+	}
+	
+	public function isAutoinc(){
+		return $this->primary && DbTypes::isInt ( $this->getDbType() );
 	}
 
 	public function getGetter() {
