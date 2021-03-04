@@ -152,15 +152,23 @@ abstract class ModelsCreator {
 					$table2 = $this->getTableName($manyToOne2->className);
 					$class1 = $this->classes[$table1];
 					$class2 = $this->classes[$table2];
-					$table1Member = \lcfirst($table1) . 's';
-					$table2Member = \lcfirst($table2) . 's';
+					$reflexive=($class1===$class2);
+					if($reflexive){
+						$table1Member=$table2Member=$table.'s';
+						$altName1=$this->getAlternateName($manyToOne2->name, \current($this->getPrimaryKeys($table1))) . 's';
+					}else{
+						$table1Member = \lcfirst($table1) . 's';
+						$table2Member = \lcfirst($table2) . 's';
+						$altName1=$altName2=$table.'s';
+					}
 					$joinTable1 = $this->getJoinTableArray($class1, $manyToOne1);
 					$joinTable2 = $this->getJoinTableArray($class2, $manyToOne2);
-					$class1->addManyToMany($table2Member, $manyToOne2->className, $table1Member, $table, $joinTable1, $joinTable2, $this->getAlternateName($manyToOne2->name, \current($this->getPrimaryKeys($table1))) . 's');
 					$class1->removeOneToManyMemberByClassAssociation($class->getName());
-
-					$class2->addManyToMany($table1Member, $manyToOne1->className, $table2Member, $table, $joinTable2, $joinTable1, $this->getAlternateName($manyToOne1->name, \current($this->getPrimaryKeys($table2))) . 's');
-					$class2->removeOneToManyMemberByClassAssociation($class->getName());
+					$class1->addManyToMany($table2Member, $manyToOne2->className, $table1Member, $table, $joinTable1, $joinTable2, $altName1);
+					if(!$reflexive){
+						$class2->removeOneToManyMemberByClassAssociation($class->getName());
+						$class2->addManyToMany($table1Member, $manyToOne1->className, $table2Member, $table, $joinTable2, $joinTable1, $altName2);
+					}
 					unset($this->classes[$table]);
 				}
 			}
