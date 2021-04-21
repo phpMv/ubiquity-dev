@@ -113,7 +113,7 @@ class ModelParser {
 				$this->notSerializableMembers[] = $propName;
 			}
 			$type = Reflexion::getDbType($modelClass, $propName);
-			if ($type === false) {
+			if ($type == null) {
 				$type = 'mixed';
 			}
 			
