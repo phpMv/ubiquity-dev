@@ -31,7 +31,7 @@ class Debug {
 	/**
 	 * 
 	 * @return bool
-	 * @deprecated replaced with LiveReload::isActive()
+	 * @deprecated replaced with LiveReload::hasLiveReload()
 	 */
 	public static function hasLiveReload():bool{
 		$exitCode=0;
