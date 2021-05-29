@@ -219,8 +219,10 @@ abstract class ScaffoldController {
                 }
                 
             } else {
-                echo $this->showSimpleMessage("The action {$action} already exists in {$controller}!", "error", "Creation", "warning circle", null, "msgControllers");
+                echo $this->showSimpleMessage("Unable to get the code of the class {$controller}!", "error", "Creation", "warning circle", null, "msgControllers");
             }
+        }else {
+            echo $this->showSimpleMessage("The action {$action} already exists in {$controller}!", "error", "Creation", "warning circle", null, "msgControllers");
         }
     }
     
