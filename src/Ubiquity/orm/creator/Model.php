@@ -1,7 +1,9 @@
 <?php
 namespace Ubiquity\orm\creator;
 
+use Ubiquity\annotations\AnnotationsEngineInterface;
 use Ubiquity\creator\HasUsesTrait;
+use Ubiquity\orm\comparator\ClassMerger;
 
 /**
  * Allows the creation of a model class.
@@ -9,7 +11,7 @@ use Ubiquity\creator\HasUsesTrait;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.5
+ * @version 1.0.6
  * @category ubiquity.dev
  *
  */
@@ -34,25 +36,7 @@ use HasUsesTrait;
 	
 	private $annots;
 
-	private function generateUniqName($member) {
-		$i = 1;
-		do {
-			$name = $member . $i;
-			$i ++;
-		} while (isset($this->members[$name]));
-		return $name;
-	}
-
-	private function checkForUniqName(&$member, $alternateName) {
-		if (isset($this->members[$member]) && \array_search($member, $this->simpleMembers) === false) {
-			if ($alternateName != null) {
-				$this->checkForUniqName($alternateName, null);
-				$member = $alternateName;
-			} else {
-				$member = $this->generateUniqName($member);
-			}
-		}
-	}
+	private $classMerger;
 
 	public function __construct($annotsEngine,$name, $namespace = 'models', $memberAccess = 'private') {
 		$this->annotsEngine=$annotsEngine;
@@ -64,9 +48,38 @@ use HasUsesTrait;
 		$this->uses=[];
 	}
 
-	public function addMember(Member $member) {
-		$this->members[$member->getName()] = $member;
-		return $this;
+	/**
+	 * @return array
+	 */
+	public function getMembers(): array {
+		return $this->members;
+	}
+	
+	public function getMethods(){
+		$methods=['__toString'];
+		if($this->hasConstructor()){
+			$methods[]='__construct';
+		}
+		foreach ($this->members as $member){
+			$methods=\array_merge($methods,$member->getMethods());
+		}
+		return $methods;
+	}
+
+	private function hasConstructor():bool{
+		foreach ($this->members as $member){
+			if($member->isMany()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * @return AnnotationsEngineInterface
+	 */
+	public function getAnnotsEngine() {
+		return $this->annotsEngine;
 	}
 
 	public function addManyToOne($member, $name, $className, $alternateName) {
@@ -80,6 +93,31 @@ use HasUsesTrait;
 			}
 		}
 		$this->members[$member]->addManyToOne($name, $className, $nullable);
+	}
+
+	private function checkForUniqName(&$member, $alternateName) {
+		if (isset($this->members[$member]) && \array_search($member, $this->simpleMembers) === false) {
+			if ($alternateName != null) {
+				$this->checkForUniqName($alternateName, null);
+				$member = $alternateName;
+			} else {
+				$member = $this->generateUniqName($member);
+			}
+		}
+	}
+
+	private function generateUniqName($member) {
+		$i = 1;
+		do {
+			$name = $member . $i;
+			$i ++;
+		} while (isset($this->members[$name]));
+		return $name;
+	}
+
+	public function addMember(Member $member) {
+		$this->members[$member->getName()] = $member;
+		return $this;
 	}
 
 	public function removeMember($memberName) {
@@ -112,7 +150,7 @@ use HasUsesTrait;
 		}
 		$this->members[$member]->addOneToMany($mappedBy, $className);
 	}
-
+	
 	public function addManyToMany($member, $targetEntity, $inversedBy, $joinTable, $joinColumns = [], $inverseJoinColumns = [], $alternateName = null) {
 		$this->checkForUniqName($member, $alternateName);
 		if (\array_key_exists($member, $this->members) === false) {
@@ -121,7 +159,7 @@ use HasUsesTrait;
 		$this->members[$member]->addManyToMany($targetEntity, $inversedBy, $joinTable, $joinColumns, $inverseJoinColumns);
 		return $member;
 	}
-	
+
 	public function addMainAnnots(){
 		$annots=[];
 		if ($this->database != null && $this->database !== 'default') {
@@ -134,6 +172,7 @@ use HasUsesTrait;
 	}
 
 	public function __toString() {
+		$cm=$this->getClassMerger();
 		$result = "<?php\n";
 		if ($this->namespace !== '' && $this->namespace !== null) {
 			$result .= 'namespace ' . $this->namespace . ";\n";
@@ -151,18 +190,22 @@ use HasUsesTrait;
 		\array_walk($members, function ($item) {
 			return $item . '';
 		});
-		$result .= \implode('', $members);
-		foreach ($members as $member) {
-			$result .= $member->getGetter();
-			$result .= $member->getSetter();
-			if ($member->isMany()) {
-				$result .= $member->getAddInManyMember();
-			}
-		}
-		$result .= $this->getToString();
+		$result .= \implode('', $members)."\n";
+		$result .= $this->generateMethods($members,$cm);
 		$result .= "\n}";
 
 		return $result;
+	}
+
+	protected function getClassMerger():?ClassMerger{
+		if(\class_exists('\\'.$this->getName(),true)){
+			if($this->classMerger==null) {
+				$this->classMerger= new ClassMerger($this->getName(), $this);
+				$this->classMerger->merge();
+			}
+			return $this->classMerger;
+		}
+		return null;
 	}
 
 	public function getName() {
@@ -170,6 +213,105 @@ use HasUsesTrait;
 		if ($this->namespace !== '' && $this->namespace !== null)
 			$namespace = $this->namespace . '\\';
 		return $namespace . $this->name;
+	}
+
+	/**
+	 * @param Member[] $members
+	 * @param ?ClassMerger $classMerger
+	 * @return string
+	 */
+	protected function generateMethods(array $members,?ClassMerger $classMerger){
+		$result='';
+		if($classMerger==null){
+			if($this->hasConstructor()) {
+				$result = $this->getConstructor().PHP_EOL;
+			}
+			foreach ($members as $member) {
+				$result .= $member->getGetter().PHP_EOL;
+				$result .= $member->getSetter().PHP_EOL;
+				if ($member->isMany()) {
+					$result .= $member->getAddInManyMember().PHP_EOL;
+				}
+			}
+			$result .= $this->getToString();
+		}else{
+			if($this->hasConstructor()) {
+				$result = $classMerger->getMethodCode('__construct', $this->getConstructor()).PHP_EOL;
+			}
+			foreach ($members as $member) {
+				$result .= $classMerger->getMethodCode($member->getGetterName(),$member->getGetter()).PHP_EOL;
+				$result .= $classMerger->getMethodCode($member->getSetterName(),$member->getSetter()).PHP_EOL;
+				if ($member->isMany()) {
+					$result .= $classMerger->getMethodCode($member->getInManyMemberName(),$member->getAddInManyMember()).PHP_EOL;
+				}
+			}
+			$result .= $classMerger->getMethodCode('__toString',$this->getToString()).PHP_EOL;
+			$result .=$classMerger->getExtCode();
+		}
+		return $result;
+	}
+
+	public function getConstructor(){
+		$initializes=[];
+		foreach ($this->members as $member){
+			if($member->isMany()){
+				$initializes[]="\t\t\$this->".$member->getName().' = [];';
+			}
+		}
+		if(\count($initializes)>0){
+			$corps=\implode(PHP_EOL,$initializes);
+			$result = "\n\t public function __construct(){\n";
+			$result .= "$corps\n";
+			$result .= "\t}\n";
+			return $result;
+		}
+		return '';
+	}
+
+	public function getToString() {
+		$field = $this->getToStringField();
+		if (isset($field)) {
+			$corps = '($this->' . $field . "??'no value').''";
+		} elseif (($pkName = $this->getPkName()) !== null) {
+			$corps = '$this->' . $pkName . ".''";
+		} else {
+			$corps = '"' . $this->name . '@"' . '.\spl_object_hash($this)';
+		}
+		$result = "\n\t public function __toString(){\n";
+		$result .= "\t\t" . 'return ' . $corps . ";\n";
+		$result .= "\t}\n";
+		return $result;
+	}
+
+	private function getToStringField() {
+		$result = null;
+
+		foreach ($this->members as $member) {
+			if ($member->getDbType() !== 'mixed' && $member->isNullable() !== true && ! $member->isPrimary()) {
+				$memberName = $member->getName();
+				if (! $member->isPassword()) {
+					$result = $memberName;
+				}
+			}
+		}
+		return $result;
+	}
+
+	public function getPkName() {
+		$pk = $this->getPrimaryKey();
+		if (isset($pk)) {
+			return $pk->getName();
+		}
+		return null;
+	}
+
+	public function getPrimaryKey() {
+		foreach ($this->members as $member) {
+			if ($member->isPrimary() === true) {
+				return $member;
+			}
+		}
+		return null;
 	}
 
 	public function getSimpleName() {
@@ -190,23 +332,6 @@ use HasUsesTrait;
 		return $count == \count($this->members);
 	}
 
-	public function getPrimaryKey() {
-		foreach ($this->members as $member) {
-			if ($member->isPrimary() === true) {
-				return $member;
-			}
-		}
-		return null;
-	}
-
-	public function getPkName() {
-		$pk = $this->getPrimaryKey();
-		if (isset($pk)) {
-			return $pk->getName();
-		}
-		return null;
-	}
-
 	public function getDefaultFk() {
 		return 'id' . $this->name;
 	}
@@ -221,37 +346,8 @@ use HasUsesTrait;
 		return $result;
 	}
 
-	private function getToStringField() {
-		$result = null;
-
-		foreach ($this->members as $member) {
-			if ($member->getDbType() !== 'mixed' && $member->isNullable() !== true && ! $member->isPrimary()) {
-				$memberName = $member->getName();
-				if (! $member->isPassword()) {
-					$result = $memberName;
-				}
-			}
-		}
-		return $result;
-	}
-
 	public function setSimpleMembers($members) {
 		$this->simpleMembers = $members;
-	}
-
-	public function getToString() {
-		$field = $this->getToStringField();
-		if (isset($field)) {
-			$corps = '($this->' . $field . "??'no value').''";
-		} elseif (($pkName = $this->getPkName()) !== null) {
-			$corps = '$this->' . $pkName . ".''";
-		} else {
-			$corps = '"' . $this->name . '@"' . '.\spl_object_hash($this)';
-		}
-		$result = "\n\t public function __toString(){\n";
-		$result .= "\t\t" . 'return ' . $corps . ";\n";
-		$result .= "\t}\n";
-		return $result;
 	}
 	
 }

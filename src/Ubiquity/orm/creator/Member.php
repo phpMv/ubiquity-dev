@@ -11,7 +11,7 @@ use Ubiquity\db\utils\DbTypes;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.3
+ * @version 1.0.4
  * @category ubiquity.dev
  *
  */
@@ -20,6 +20,8 @@ class Member {
 	private $name;
 
 	private $primary;
+	
+	private $transient;
 
 	private $manyToOne;
 
@@ -40,13 +42,14 @@ class Member {
 		$this->name = $name;
 		$this->annotations = [];
 		$this->primary = false;
+		$this->transient=false;
 		$this->manyToOne = false;
 		$this->access = $access;
 	}
 
 	public function __toString() {
 		$annotationsStr = '';
-		if (sizeof($this->annotations) > 0) {
+		if (\count($this->annotations) > 0) {
 			$annotationsStr = "\n".$this->annotsEngine->getAnnotationsStr($this->annotations);
 		}
 		return $annotationsStr . "\n\t{$this->access} $" . $this->name . ";\n";
@@ -56,6 +59,13 @@ class Member {
 		if ($this->primary === false) {
 			$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'id');
 			$this->primary = true;
+		}
+	}
+
+	public function setTransient() {
+		if ($this->transient === false) {
+			$this->annotations[] = $this->annotsEngine->getAnnotation($this->container,'transient');
+			$this->transient = true;
 		}
 	}
 
@@ -162,17 +172,25 @@ class Member {
 	}
 
 	public function getGetter() {
-		$result = "\n\tpublic function get" . \ucfirst($this->name) . "(){\n";
+		$result = "\n\tpublic function " . $this->getGetterName() . "(){\n";
 		$result .= "\t\t" . 'return $this->' . $this->name . ";\n";
 		$result .= "\t}\n";
 		return $result;
 	}
 
+	public function getGetterName(){
+		return 'get' . \ucfirst($this->name);
+	}
+
 	public function getSetter() {
-		$result = "\n\tpublic function set" . \ucfirst($this->name) . '($' . $this->name . "){\n";
+		$result = "\n\tpublic function " . $this->getSetterName() . '($' . $this->name . "){\n";
 		$result .= "\t\t" . '$this->' . $this->name . '=$' . $this->name . ";\n";
 		$result .= "\t}\n";
 		return $result;
+	}
+
+	public function getSetterName(){
+		return 'set' . \ucfirst($this->name);
 	}
 
 	public function getAddInManyMember() {
@@ -180,10 +198,18 @@ class Member {
 		if (\substr($name, - 1) === 's') {
 			$name = \substr($name, 0, - 1);
 		}
-		$result = "\n\t public function add" . \ucfirst($name) . '($' . $name . "){\n";
+		$result = "\n\t public function " . $this->getInManyMemberName() . '($' . $name . "){\n";
 		$result .= "\t\t" . '$this->' . $this->name . '[]=$' . $name . ";\n";
 		$result .= "\t}\n";
 		return $result;
+	}
+
+	public function getInManyMemberName(){
+		$name = $this->name;
+		if (\substr($name, - 1) === 's') {
+			$name = \substr($name, 0, - 1);
+		}
+		return 'add'.\ucfirst($name);
 	}
 
 	public function hasAnnotations() {
@@ -221,5 +247,17 @@ class Member {
 
 	public function getAnnotations() {
 		return $this->annotations;
+	}
+
+	public function getMethods(){
+		$r=[$this->getGetterName(),$this->getSetterName()];
+		if($this->isMany()){
+			$r[]=$this->getInManyMemberName();
+		}
+		return $r;
+	}
+	
+	public function addAnnotations(array $annotations){
+		$this->annotations=\array_merge($this->annotations,$annotations);
 	}
 }
