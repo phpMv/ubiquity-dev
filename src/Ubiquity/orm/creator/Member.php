@@ -163,6 +163,15 @@ class Member {
 		return null;
 	}
 
+	public function getOneToMany() {
+		foreach ($this->annotations as $annotation) {
+			if ($this->annotsEngine->isOneToMany($annotation)) {
+				return $annotation;
+			}
+		}
+		return null;
+	}
+
 	public function isPrimary() {
 		return $this->primary;
 	}
@@ -193,23 +202,31 @@ class Member {
 		return 'set' . \ucfirst($this->name);
 	}
 
-	public function getAddInManyMember() {
-		$name = $this->name;
-		if (\substr($name, - 1) === 's') {
-			$name = \substr($name, 0, - 1);
-		}
-		$result = "\n\t public function " . $this->getInManyMemberName() . '($' . $name . "){\n";
+	public function getAddInManyToManyMember() {
+		$name = \trim($this->name,'s');
+		$result = "\n\t public function " . $this->getInManyToManyMemberName() . '($' . $name . "){\n";
 		$result .= "\t\t" . '$this->' . $this->name . '[]=$' . $name . ";\n";
 		$result .= "\t}\n";
 		return $result;
 	}
 
-	public function getInManyMemberName(){
-		$name = $this->name;
-		if (\substr($name, - 1) === 's') {
-			$name = \substr($name, 0, - 1);
-		}
-		return 'add'.\ucfirst($name);
+	public function getAddInOneToManyMember() {
+		$name = \trim($this->name,'s');
+		$annot=$this->getOneToMany();
+		$mappedBy=$annot->mappedBy;
+		$result = "\n\t public function " . $this->getInOneToManyMemberName() . '($' . $name . "){\n";
+		$result .= "\t\t" . '$this->' . $this->name . '[]=$' . $name . ";\n";
+		$result .= "\t\t\$" . $name . '->set' .\ucfirst($mappedBy)."(\$this);\n";
+		$result .= "\t}\n";
+		return $result;
+	}
+
+	public function getInManyToManyMemberName(){
+		return 'add'.\ucfirst(\rtrim($this->name,'s'));
+	}
+
+	public function getInOneToManyMemberName(){
+		return 'addTo'.\ucfirst($this->name);
 	}
 
 	public function hasAnnotations() {
@@ -219,6 +236,24 @@ class Member {
 	public function isMany() {
 		foreach ($this->annotations as $annot) {
 			if ($this->annotsEngine->isMany($annot)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function isManyToMany() {
+		foreach ($this->annotations as $annot) {
+			if ($this->annotsEngine->isManyToMany($annot)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function isOneToMany() {
+		foreach ($this->annotations as $annot) {
+			if ($this->annotsEngine->isOneToMany($annot)) {
 				return true;
 			}
 		}
@@ -251,8 +286,11 @@ class Member {
 
 	public function getMethods(){
 		$r=[$this->getGetterName(),$this->getSetterName()];
-		if($this->isMany()){
-			$r[]=$this->getInManyMemberName();
+		if($this->isManyToMany()){
+			$r[]=$this->getInManyToManyMemberName();
+		}
+		if($this->isOneToMany()){
+			$r[]=$this->getInOneToManyMemberName();
 		}
 		return $r;
 	}

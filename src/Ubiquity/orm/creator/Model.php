@@ -229,8 +229,11 @@ use HasUsesTrait;
 			foreach ($members as $member) {
 				$result .= $member->getGetter().PHP_EOL;
 				$result .= $member->getSetter().PHP_EOL;
-				if ($member->isMany()) {
-					$result .= $member->getAddInManyMember().PHP_EOL;
+				if ($member->isManyToMany()) {
+					$result .= $member->getAddInManyToManyMember().PHP_EOL;
+				}
+				if ($member->isOneToMany()) {
+					$result .= $member->getAddInOneToManyMember().PHP_EOL;
 				}
 			}
 			$result .= $this->getToString();
@@ -241,8 +244,11 @@ use HasUsesTrait;
 			foreach ($members as $member) {
 				$result .= $classMerger->getMethodCode($member->getGetterName(),$member->getGetter()).PHP_EOL;
 				$result .= $classMerger->getMethodCode($member->getSetterName(),$member->getSetter()).PHP_EOL;
-				if ($member->isMany()) {
-					$result .= $classMerger->getMethodCode($member->getInManyMemberName(),$member->getAddInManyMember()).PHP_EOL;
+				if ($member->isManyToMany()) {
+					$result .= $classMerger->getMethodCode($member->getInManyToManyMemberName(),$member->getAddInManyToManyMember()).PHP_EOL;
+				}
+				if ($member->isOneToMany()) {
+					$result .= $classMerger->getMethodCode($member->getInOneToManyMemberName(),$member->getAddInOneToManyMember()).PHP_EOL;
 				}
 			}
 			$result .= $classMerger->getMethodCode('__toString',$this->getToString()).PHP_EOL;
