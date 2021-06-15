@@ -12,7 +12,7 @@ use Ubiquity\orm\DAO;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.7
+ * @version 1.0.8
  * @category ubiquity.dev
  *
  */
@@ -74,13 +74,15 @@ abstract class ModelsCreator {
 				$this->classes[$table] = $class;
 			}
 			$this->createRelations();
+			
 			if (isset($singleTable)) {
 				$this->createOneClass($singleTable, $modelsDir);
 			} else {
 				foreach ($this->classes as $table => $class) {
 					$name = $class->getSimpleName();
 					echo "Creating the {$name} class\n";
-					$this->writeFile($modelsDir . \DS . $name . '.php', $class);
+					$classContent=$class->__toString();
+					$this->writeFile($modelsDir . \DS . $name . '.php', $classContent);
 				}
 			}
 			if ($initCache === true) {
@@ -93,7 +95,8 @@ abstract class ModelsCreator {
 		if (isset($this->classes[$singleTable])) {
 			$class = $this->classes[$singleTable];
 			echo "Creating the {$class->getName()} class\n";
-			$this->writeFile($modelsDir . \DS . $class->getSimpleName() . '.php', $class);
+			$classContent=$class->__toString();
+			$this->writeFile($modelsDir . \DS . $class->getSimpleName() . '.php', $classContent);
 		} else {
 			echo "The {$singleTable} table does not exist in the database\n";
 		}
