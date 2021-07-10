@@ -22,13 +22,14 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
         
         $this->routePath ??= '{resource}';
         $routePath=$this->routePath;
+        $routeAnnotation=$this->getRouteAnnotation($routePath);
         
         $uses = $this->getUsesStr();
         $messages [] = $scaffoldController->_createController ( $crudControllerName, [
             '%indexRoute'=>$this->getAnnotation('route', ['name'=>'crud.index']),
-            '%homeRoute%'=>$this->getAnnotation('route', ['path'=>$this->getHome($routePath),'name'=>'crud.home']),
+            '%homeRoute%'=>$this->getAnnotation('route', ['path'=>$this->getHome($routePath),'name'=>'crud.home','priority'=>100]),
             '%routePath%' => '"'.\str_replace('{resource}', '".$this->resource."', $routePath).'"',
-            '%route%' => $this->getRouteAnnotation($routePath),
+            '%route%' => $routeAnnotation,
             '%uses%' => $uses,
             '%namespace%' => $this->getNamespaceStr(),
             '%baseClass%' => "\\Ubiquity\\controllers\\crud\\IndexCRUDController",
