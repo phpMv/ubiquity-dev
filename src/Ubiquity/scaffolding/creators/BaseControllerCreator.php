@@ -61,6 +61,10 @@ abstract class BaseControllerCreator {
 			'inherited' => $inherited
 		])->asAnnotation();
 	}
+	
+	protected function getAnnotation(string $type,array $attributes){
+	    return CacheManager::getAnnotationsEngineInstance()->getAnnotation($this, $type, $attributes)->asAnnotation();
+	}
 
 	abstract public function create(ScaffoldController $scaffoldController);
 

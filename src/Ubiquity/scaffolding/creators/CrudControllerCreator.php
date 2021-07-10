@@ -41,30 +41,8 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$messages = [ ];
 
 		$scaffoldController->_createMethod ( 'public', '__construct', '', '', "\n\t\tparent::__construct();\n\$this->model=\"{$resource}\";" );
+        $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages);
 
-		if (isset ( $this->crudDatas )) {
-			$this->addUses("{$nsc}\\crud\\datas\\{$crudControllerName}Datas","Ubiquity\\controllers\\crud\\CRUDDatas");
-
-			$classContent .= $scaffoldController->_createMethod ( 'protected', 'getAdminData', '', ': CRUDDatas', "\t\treturn new {$crudControllerName}Datas(\$this);" );
-			$messages [] = $this->createCRUDDatasClass ();
-		}
-
-		if (isset ( $this->crudViewer )) {
-			$this->addUses("{$nsc}\\crud\\viewers\\{$crudControllerName}Viewer","Ubiquity\\controllers\\crud\\viewers\\ModelViewer");
-
-			$classContent .= $scaffoldController->_createMethod ( 'protected', 'getModelViewer', '', ': ModelViewer', "\t\treturn new {$crudControllerName}Viewer(\$this,\$this->style);" );
-			$messages [] = $this->createModelViewerClass ();
-		}
-		if (isset ( $this->crudEvents )) {
-			$this->addUses("{$nsc}\\crud\\events\\{$crudControllerName}Events","Ubiquity\\controllers\\crud\\CRUDEvents");
-
-			$classContent .= $scaffoldController->_createMethod ( 'protected', 'getEvents', '', ': CRUDEvents', "\t\treturn new {$crudControllerName}Events(\$this);" );
-			$messages [] = $this->createEventsClass ();
-		}
-
-		if (isset ( $this->views )) {
-			$this->addViews ( $messages, $classContent );
-		}
 		$routePath = $this->controllerName;
 		$routeAnnot='';
 		if ($this->routePath != null) {
@@ -85,6 +63,32 @@ class CrudControllerCreator extends BaseControllerCreator {
 		]
 			, $this->templateName );
 		echo implode ( "\n", $messages );
+	}
+	
+	protected function createElements(string $nsc,string $crudControllerName,ScaffoldController $scaffoldController,array &$messages){
+	    if (isset ( $this->crudDatas )) {
+	        $this->addUses("{$nsc}\\crud\\datas\\{$crudControllerName}Datas","Ubiquity\\controllers\\crud\\CRUDDatas");
+	        
+	        $classContent .= $scaffoldController->_createMethod ( 'protected', 'getAdminData', '', ': CRUDDatas', "\t\treturn new {$crudControllerName}Datas(\$this);" );
+	        $messages [] = $this->createCRUDDatasClass ();
+	    }
+	    
+	    if (isset ( $this->crudViewer )) {
+	        $this->addUses("{$nsc}\\crud\\viewers\\{$crudControllerName}Viewer","Ubiquity\\controllers\\crud\\viewers\\ModelViewer");
+	        
+	        $classContent .= $scaffoldController->_createMethod ( 'protected', 'getModelViewer', '', ': ModelViewer', "\t\treturn new {$crudControllerName}Viewer(\$this,\$this->style);" );
+	        $messages [] = $this->createModelViewerClass ();
+	    }
+	    if (isset ( $this->crudEvents )) {
+	        $this->addUses("{$nsc}\\crud\\events\\{$crudControllerName}Events","Ubiquity\\controllers\\crud\\CRUDEvents");
+	        
+	        $classContent .= $scaffoldController->_createMethod ( 'protected', 'getEvents', '', ': CRUDEvents', "\t\treturn new {$crudControllerName}Events(\$this);" );
+	        $messages [] = $this->createEventsClass ();
+	    }
+	    
+	    if (isset ( $this->views )) {
+	        $this->addViews ( $messages, $classContent );
+	    }
 	}
 
 	protected function addViews(&$messages, &$classContent) {

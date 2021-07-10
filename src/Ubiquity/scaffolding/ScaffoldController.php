@@ -12,6 +12,7 @@ use Ubiquity\scaffolding\creators\RestControllerCreator;
 use Ubiquity\utils\base\CodeUtils;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\creator\HasUsesTrait;
+use src\Ubiquity\scaffolding\creators\IndexCrudControllerCreator;
 
 /**
  * Base class for Scaffolding.
@@ -33,6 +34,13 @@ abstract class ScaffoldController {
             "index" => "@framework/crud/index.html",
             "form" => "@framework/crud/form.html",
             "display" => "@framework/crud/display.html"
+        ],
+        "indexCRUD" => [
+            "index" => "@framework/crud/index.html",
+            "form" => "@framework/crud/form.html",
+            "display" => "@framework/crud/display.html",
+            "item" => "@framework/crud/item.html",
+            "itemHome" => "@framework/crud/itemHome.html",
         ],
         "auth" => [
             "index" => "@framework/auth/index.html",
@@ -118,6 +126,11 @@ abstract class ScaffoldController {
     
     public function addCrudController($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false,$style='') {
         $crudController = new CrudControllerCreator($crudControllerName, $resource, $crudDatas, $crudViewer, $crudEvents, $crudViews, $routePath, $useViewInheritance,$style);
+        $crudController->create($this);
+    }
+    
+    public function addIndexCrudController($crudControllerName, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false,$style='') {
+        $crudController = new IndexCrudControllerCreator($crudControllerName, $crudDatas, $crudViewer, $crudEvents, $crudViews, $routePath, $useViewInheritance,$style);
         $crudController->create($this);
     }
     
