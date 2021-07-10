@@ -40,7 +40,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
     }
     
     protected function getHome($path) {
-        $elements=\explode("\\",$path);
+        $elements=\explode("/",$path);
         $r=[];
         foreach ($elements as $index=>$elm){
             if($elm==='{resource}'){
@@ -53,7 +53,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
                 $r[]=$elm;
             }
         }
-        return implode("\\", $r);
+        return implode("/", $r);
     }
 }
 
