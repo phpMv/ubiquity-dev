@@ -21,6 +21,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 	private $crudViewer;
 	private $crudEvents;
 	private $style;
+	protected $viewKey;
 
 	public function __construct($crudControllerName, $resource, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false,$style='') {
 		parent::__construct ( $crudControllerName, $routePath, $crudViews ,$useViewInheritance);
@@ -30,6 +31,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$this->crudEvents = $crudEvents;
 		$this->templateName = 'crudController.tpl';
 		$this->style = $style;
+		$this->viewKey='CRUD';
 	}
 
 	public function create(ScaffoldController $scaffoldController) {
@@ -99,8 +101,8 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$classContent .= $this->scaffoldController->_createMethod ( "protected", "getFiles", "", ": CRUDFiles", "\t\treturn new {$crudControllerName}Files();" );
 		$classFilesContent = [ ];
 		foreach ( $crudViews as $file ) {
-			if (isset ( ScaffoldController::$views ['CRUD'] [$file] )) {
-				$frameworkViewname = ScaffoldController::$views ['CRUD'] [$file];
+			if (isset ( ScaffoldController::$views [$this->viewKey] [$file] )) {
+			    $frameworkViewname = ScaffoldController::$views [$this->viewKey] [$file];
 				$this->scaffoldController->createAuthCrudView ( $frameworkViewname, $crudControllerName, $file ,$this->useViewInheritance);
 				$classFilesContent [] = $this->scaffoldController->_createMethod ( 'public', 'getView' . \ucfirst ( $file ), '', '', "\t\treturn \"" . $crudControllerName . "/" . $file . ".html\";" );
 			}

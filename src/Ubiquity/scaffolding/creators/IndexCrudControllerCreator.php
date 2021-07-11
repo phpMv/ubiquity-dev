@@ -9,6 +9,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
     public function __construct($crudControllerName, $crudDatas = null, $crudViewer = null, $crudEvents = null, $crudViews = null, $routePath = '', $useViewInheritance = false,$style='') {
         parent::__construct($crudControllerName, null,$crudDatas,$crudViewer,$crudEvents,$crudViews,$routePath,$useViewInheritance,$style);
         $this->templateName='indexCrudController.tpl';
+        $this->viewKey='indexCRUD';
     }
     
     public function create(ScaffoldController $scaffoldController) {
