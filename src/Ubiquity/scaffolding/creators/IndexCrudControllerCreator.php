@@ -1,5 +1,5 @@
 <?php
-namespace src\Ubiquity\scaffolding\creators;
+namespace Ubiquity\scaffolding\creators;
 
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\ScaffoldController;
