@@ -26,15 +26,14 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
         
         $uses = $this->getUsesStr();
         $messages [] = $scaffoldController->_createController ( $crudControllerName, [
-            '%indexRoute'=>$this->getAnnotation('route', ['name'=>'crud.index']),
+            '%indexRoute%'=>$this->getAnnotation('route', ['name'=>'crud.index']),
             '%homeRoute%'=>$this->getAnnotation('route', ['path'=>$this->getHome($routePath),'name'=>'crud.home','priority'=>100]),
             '%routePath%' => '"'.\str_replace('{resource}', '".$this->resource."', $routePath).'"',
             '%route%' => $routeAnnotation,
             '%uses%' => $uses,
             '%namespace%' => $this->getNamespaceStr(),
-            '%baseClass%' => "\\Ubiquity\\controllers\\crud\\IndexCRUDController",
-            '%content%' => $classContent,
-            '%style%'=>$this->style
+            '%baseClass%' => "\\Ubiquity\\controllers\\crud\\MultiResourceCRUDController",
+            '%content%' => $classContent
         ]
             , $this->templateName );
         echo implode ( "\n", $messages );
