@@ -41,7 +41,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$messages = [ ];
 
 		$scaffoldController->_createMethod ( 'public', '__construct', '', '', "\n\t\tparent::__construct();\n\$this->model=\"{$resource}\";" );
-        $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages);
+        $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages,$classContent);
 
 		$routePath = $this->controllerName;
 		$routeAnnot='';
@@ -65,7 +65,7 @@ class CrudControllerCreator extends BaseControllerCreator {
 		echo implode ( "\n", $messages );
 	}
 	
-	protected function createElements(string $nsc,string $crudControllerName,ScaffoldController $scaffoldController,array &$messages){
+	protected function createElements(string $nsc,string $crudControllerName,ScaffoldController $scaffoldController,array &$messages,string &$classContent){
 	    if (isset ( $this->crudDatas )) {
 	        $this->addUses("{$nsc}\\crud\\datas\\{$crudControllerName}Datas","Ubiquity\\controllers\\crud\\CRUDDatas");
 	        

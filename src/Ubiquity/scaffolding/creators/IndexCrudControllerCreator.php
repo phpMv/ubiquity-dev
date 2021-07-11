@@ -18,7 +18,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
         $nsc=\trim($this->controllerNS,'\\');
         $messages = [ ];
         
-        $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages);
+        $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages,$classContent);
         
         $this->routePath ??= '{resource}';
         $routePath=$this->routePath;
