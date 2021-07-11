@@ -16,11 +16,11 @@ class %controllerName% extends %baseClass%{
 		parent::home();
 	}
 
-	protected function getIndexType(){
+	protected function getIndexType():array {
 		return ['four link cards','card'];
 	}
 	
-	public function _getBaseRoute() {
+	public function _getBaseRoute():string {
 		return %routePath%;
 	}
 	
