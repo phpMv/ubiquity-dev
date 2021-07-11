@@ -44,7 +44,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
         $r=[];
         foreach ($elements as $index=>$elm){
             if($elm==='{resource}'){
-                if($index==0){
+                if(\count($r)===0){
                     $r[]='#/home';
                 }else{
                     $r[]='home';
