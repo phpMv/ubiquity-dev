@@ -57,19 +57,21 @@ class ClassMerger {
                     }
                 }
             }
-            $actualMethods=$r->getMethods();
-            $newMethods=$this->model->getMethods();
-            foreach ($actualMethods as $reflectionMethod){
-                $code='';
-                $methodName=$reflectionMethod->getName();
-                if(\array_search($methodName,$newMethods)===false){
-                    $code=UIntrospection::getMethodCode($reflectionMethod,$this->classCode);
-                    $annotations=$reflectionMethod->getAttributes();
-                    if(\count($annotations)>0) {
-                        $code = $this->model->getAnnotsEngine()->getAnnotationsStr($annotations).$code;
+            if(\method_exists(\ReflectionMethod::class, 'getAttributes')){
+                $actualMethods=$r->getMethods();
+                $newMethods=$this->model->getMethods();
+                foreach ($actualMethods as $reflectionMethod){
+                    $code='';
+                    $methodName=$reflectionMethod->getName();
+                    if(\array_search($methodName,$newMethods)===false){
+                        $code=UIntrospection::getMethodCode($reflectionMethod,$this->classCode);
+                        $annotations=$reflectionMethod->getAttributes();
+                        if(\count($annotations)>0) {
+                            $code = $this->model->getAnnotsEngine()->getAnnotationsStr($annotations).$code;
+                        }
                     }
+                    $this->extCode.=$code;
                 }
-                $this->extCode.=$code;
             }
             $this->merged = true;
         }
