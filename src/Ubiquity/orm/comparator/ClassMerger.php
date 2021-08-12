@@ -85,12 +85,14 @@ class ClassMerger {
         if(\method_exists($this->class,$methodName)){
             $r=new \ReflectionMethod($this->class.'::'.$methodName);
             $oldCode=UIntrospection::getMethodCode($r,$this->classCode);
-            $annotations=$r->getAttributes();
-            if(\count($annotations)>0) {
-                $oldCode = $this->model->getAnnotsEngine()->getAnnotationsStr($annotations).$oldCode;
-            }
-            if($this->removeBlank($oldCode)!==$this->removeBlank($newCode)){
-                return $oldCode;
+            if(\method_exists(\ReflectionMethod::class,'getAttributes')){
+                $annotations=$r->getAttributes();
+                if(\count($annotations)>0) {
+                    $oldCode = $this->model->getAnnotsEngine()->getAnnotationsStr($annotations).$oldCode;
+                }
+                if($this->removeBlank($oldCode)!==$this->removeBlank($newCode)){
+                    return $oldCode;
+                }
             }
         }
         return $newCode;
