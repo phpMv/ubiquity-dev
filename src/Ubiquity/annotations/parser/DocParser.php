@@ -37,7 +37,7 @@ class DocParser {
 				$line=\trim($line);
 				if(UString::startswith($line, "@")){
 					if(\preg_match("@^\@(.*?)\ @i", $line,$matches)){
-						$this->addInArray($this->lines, $matches[1], \preg_replace("@^\@".$matches[1]."(.*?)\ @i", "$1", $line));
+					    $this->addInArray($this->lines, $matches[1], \preg_replace("@^\@".\preg_quote($matches[1])."(.*?)\ @i", "$1", $line));
 					}
 				}else{
 					$this->description[]=$line;
