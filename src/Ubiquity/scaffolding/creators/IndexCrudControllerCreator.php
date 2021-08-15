@@ -41,20 +41,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
     }
     
     protected function getHome($path) {
-        $elements=\explode("/",$path);
-        $r=[];
-        foreach ($elements as $index=>$elm){
-            if($elm==='{resource}'){
-                if(\count($r)===0){
-                    $r[]='#/home';
-                }else{
-                    $r[]='home';
-                }
-            }elseif($elm!=''){
-                $r[]=$elm;
-            }
-        }
-        return implode("/", $r);
+        return '#/'.\str_replace('{resource}', 'home',$path);
     }
 }
 
