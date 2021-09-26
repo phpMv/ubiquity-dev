@@ -39,7 +39,7 @@ abstract class ScaffoldController {
             "index" => "@framework/crud/index.html",
             "form" => "@framework/crud/form.html",
             "display" => "@framework/crud/display.html",
-            "item" => "@framework/crud/item.html",
+            "home" => "@framework/crud/home.html",
             "itemHome" => "@framework/crud/itemHome.html",
             "nav"=>"@framework/crud/nav.html"
         ],
