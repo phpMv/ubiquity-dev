@@ -11,7 +11,7 @@ use Ubiquity\cache\CacheManager;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.2
+ * @version 1.0.3
  * @package Ubiquity.dev
  *
  */
@@ -28,8 +28,10 @@ class DatabaseReversor {
 		$this->database = $databaseOffset;
 	}
 
-	public function createDatabase($name) {
-		$this->generator->createDatabase($name);
+	public function createDatabase(string $name, bool $createDb = true): void {
+		if ($createDb) {
+			$this->generator->createDatabase($name);
+		}
 		$this->generator->selectDatabase($name);
 		$config = Startup::getConfig();
 		$models = $this->models ?? CacheManager::getModels($config, true, $this->database);
