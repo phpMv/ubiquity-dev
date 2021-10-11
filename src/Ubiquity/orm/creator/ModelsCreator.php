@@ -12,11 +12,13 @@ use Ubiquity\orm\DAO;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.8
+ * @version 1.0.9
  * @category ubiquity.dev
  *
  */
 abstract class ModelsCreator {
+
+	private $silent = false;
 
 	protected $config;
 
@@ -34,12 +36,13 @@ abstract class ModelsCreator {
 
 	abstract protected function getForeignKeys($tableName, $pkName, $dbName = null);
 
-	protected function init($config, $offset = 'default') {
+	protected function init(array $config, string $offset = 'default') {
 		$this->config = DAO::getDbOffset($config, $offset);
 	}
 
-	public function create($config, $initCache = true, $singleTable = null, $offset = 'default', $memberAccess = 'private') {
-		$engine=CacheManager::getAnnotationsEngineInstance();
+	public function create(array $config, bool $initCache = true, ?string $singleTable = null, string $offset = 'default', string $memberAccess = 'private') {
+		\ob_start();
+		$engine = CacheManager::getAnnotationsEngineInstance();
 		$this->init($config, $offset);
 		$this->memberAccess = $memberAccess;
 		$dirPostfix = '';
@@ -54,14 +57,14 @@ abstract class ModelsCreator {
 			CacheManager::checkCache($config);
 
 			foreach ($this->tables as $table) {
-				$class = new Model($engine,$table, $config['mvcNS']['models'] . $nsPostfix, $memberAccess);
+				$class = new Model($engine, $table, $config['mvcNS']['models'] . $nsPostfix, $memberAccess);
 				$class->setDatabase($offset);
 
 				$fieldsInfos = $this->getFieldsInfos($table);
 				$class->setSimpleMembers(\array_keys($fieldsInfos));
 				$keys = $this->getPrimaryKeys($table);
 				foreach ($fieldsInfos as $field => $info) {
-					$member = new Member($class,$engine,$field, $memberAccess);
+					$member = new Member($class, $engine, $field, $memberAccess);
 					if (\in_array($field, $keys)) {
 						$member->setPrimary();
 					}
@@ -74,28 +77,33 @@ abstract class ModelsCreator {
 				$this->classes[$table] = $class;
 			}
 			$this->createRelations();
-			
+
 			if (isset($singleTable)) {
 				$this->createOneClass($singleTable, $modelsDir);
 			} else {
 				foreach ($this->classes as $table => $class) {
 					$name = $class->getSimpleName();
 					echo "Creating the {$name} class\n";
-					$classContent=$class->__toString();
+					$classContent = $class->__toString();
 					$this->writeFile($modelsDir . \DS . $name . '.php', $classContent);
 				}
 			}
 			if ($initCache === true) {
-				CacheManager::initCache($config, 'models');
+				CacheManager::initCache($config, 'models', $this->silent);
 			}
 		}
+		$r = \ob_get_clean();
+		if ($this->silent) {
+			return $r;
+		}
+		echo $r;
 	}
 
-	protected function createOneClass($singleTable, $modelsDir) {
+	protected function createOneClass(string $singleTable, string $modelsDir) {
 		if (isset($this->classes[$singleTable])) {
 			$class = $this->classes[$singleTable];
 			echo "Creating the {$class->getName()} class\n";
-			$classContent=$class->__toString();
+			$classContent = $class->__toString();
 			$this->writeFile($modelsDir . \DS . $class->getSimpleName() . '.php', $classContent);
 		} else {
 			echo "The {$singleTable} table does not exist in the database\n";
@@ -110,22 +118,22 @@ abstract class ModelsCreator {
 				foreach ($fks as $fk) {
 					$field = \lcfirst($table);
 					$fkTable = $fk['TABLE_NAME'];
-					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . 's', \lcfirst($table), $this->classes[$fkTable]->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']??$field) . 's');
-					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk['COLUMN_NAME']), $class->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME']??$field));
+					$this->classes[$table]->addOneToMany(\lcfirst($fkTable) . 's', \lcfirst($table), $this->classes[$fkTable]->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME'] ?? $field) . 's');
+					$this->classes[$fkTable]->addManyToOne($field, \lcfirst($fk['COLUMN_NAME']), $class->getName(), $this->getAlternateName($fk['COLUMN_NAME'], $fk['REFERENCED_COLUMN_NAME'] ?? $field));
 				}
 			}
 		}
 		$this->createManyToMany();
 	}
 
-	protected function getAlternateName($fkName, $pkName) {
-		$alter=$fkName;
-		$pkName=\ucfirst($pkName);
+	protected function getAlternateName(string $fkName, string $pkName): string {
+		$alter = $fkName;
+		$pkName = \ucfirst($pkName);
 		if (\substr($fkName, 0, \strlen($pkName)) == $pkName) {
 			$alter = \substr($fkName, \strlen($pkName));
 		}
-		$needle_position = \strlen($pkName) * -1;
-		
+		$needle_position = \strlen($pkName) * - 1;
+
 		if (\substr($alter, $needle_position) == $pkName) {
 			$alter = \substr($alter, 0, $needle_position);
 		}
@@ -133,7 +141,7 @@ abstract class ModelsCreator {
 		return \lcfirst($alter);
 	}
 
-	protected function getTableName($classname) {
+	protected function getTableName(string $classname): string {
 		foreach ($this->classes as $table => $class) {
 			if ($class->getName() === $classname) {
 				return $table;
@@ -155,20 +163,20 @@ abstract class ModelsCreator {
 					$table2 = $this->getTableName($manyToOne2->className);
 					$class1 = $this->classes[$table1];
 					$class2 = $this->classes[$table2];
-					$reflexive=($class1===$class2);
-					if($reflexive){
-						$table1Member=$table2Member=$table.'s';
-						$altName1=$this->getAlternateName($manyToOne2->name, \current($this->getPrimaryKeys($table1))) . 's';
-					}else{
+					$reflexive = ($class1 === $class2);
+					if ($reflexive) {
+						$table1Member = $table2Member = $table . 's';
+						$altName1 = $this->getAlternateName($manyToOne2->name, \current($this->getPrimaryKeys($table1))) . 's';
+					} else {
 						$table1Member = \lcfirst($table1) . 's';
 						$table2Member = \lcfirst($table2) . 's';
-						$altName1=$altName2=$table.'s';
+						$altName1 = $altName2 = $table . 's';
 					}
 					$joinTable1 = $this->getJoinTableArray($class1, $manyToOne1);
 					$joinTable2 = $this->getJoinTableArray($class2, $manyToOne2);
 					$class1->removeOneToManyMemberByClassAssociation($class->getName());
 					$class1->addManyToMany($table2Member, $manyToOne2->className, $table1Member, $table, $joinTable1, $joinTable2, $altName1);
-					if(!$reflexive){
+					if (! $reflexive) {
 						$class2->removeOneToManyMemberByClassAssociation($class->getName());
 						$class2->addManyToMany($table1Member, $manyToOne1->className, $table2Member, $table, $joinTable2, $joinTable1, $altName2);
 					}
@@ -192,7 +200,15 @@ abstract class ModelsCreator {
 		return [];
 	}
 
-	protected function writeFile($filename, $data) {
+	protected function writeFile(string $filename, string $data): int {
 		return \file_put_contents($filename, $data);
+	}
+
+	/**
+	 *
+	 * @param boolean $silent
+	 */
+	public function setSilent(bool $silent): void {
+		$this->silent = $silent;
 	}
 }
