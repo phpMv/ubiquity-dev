@@ -4,6 +4,7 @@ namespace Ubiquity\orm\reverse;
 use Ubiquity\db\reverse\DbGenerator;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\orm\DAO;
 
 /**
  * Generates database from models.
@@ -23,9 +24,21 @@ class DatabaseReversor {
 
 	private $models;
 
+	private $databaseMetas;
+
 	public function __construct(DbGenerator $generator, $databaseOffset = 'default') {
 		$this->generator = $generator;
 		$this->database = $databaseOffset;
+	}
+
+	public function getDatabaseMeta(){
+		$db=DAO::getDatabase();
+		if($db->isConnected()){
+			$tables=$db->getTablesName();
+			foreach ($tables as $table){
+				$this->databaseMetas[$table]=;
+			}
+		}
 	}
 
 	public function createDatabase(string $name, bool $createDb = true): void {
