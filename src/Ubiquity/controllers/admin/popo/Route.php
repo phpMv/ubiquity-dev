@@ -1,6 +1,9 @@
 <?php
 namespace Ubiquity\controllers\admin\popo;
 
+use Ubiquity\controllers\Startup;
+use Ubiquity\utils\base\UString;
+
 /**
  * Ubiquity\controllers\admin\popo$Route
  * This class is part of Ubiquity
@@ -166,15 +169,20 @@ class Route {
 		return " (" . ((\is_array($this->parameters)) ? \implode(", ", $this->parameters) : $this->parameters) . ")";
 	}
 
-	public static function init($array) {
+	public static function init(array $array,string $domain=''): array {
 		$result = [];
+		$ns=Startup::getNS();
 		foreach ($array as $k => $v) {
 			if (isset($v['controller'])) {
-				$result[] = new Route($k, $v);
+				if(UString::startswith($v['controller'],$ns)) {
+					$result[] = new Route($k, $v);
+				}
 			} else {
 				$routes = self::mergeRouteArray($v);
 				foreach ($routes as $route) {
-					$result[] = new Route($k, $route);
+					if(UString::startswith($route['controller'],$ns)) {
+						$result[] = new Route($k, $route);
+					}
 				}
 			}
 		}

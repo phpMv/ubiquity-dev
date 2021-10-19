@@ -5,6 +5,7 @@ use Ubiquity\cache\CacheManager;
 use Ubiquity\cache\ClassUtils;
 use Ubiquity\controllers\Startup;
 use Ubiquity\creator\HasUsesTrait;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\scaffolding\creators\AuthControllerCreator;
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\creators\IndexCrudControllerCreator;
@@ -95,15 +96,15 @@ abstract class ScaffoldController {
             $msgView = '';
             $indexContent = '';
             if ($hasView) {
-                $viewDir = \ROOT . \DS . 'views' . \DS . $controllerName . \DS;
+                $viewDir = DDDManager::getActiveViewFolder() . $controllerName . \DS;
                 UFileSystem::safeMkdir($viewDir);
                 $viewName = $viewDir . \DS . 'index.html';
                 UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', $viewName, [
                     '%controllerName%' => $controllerName,
                     '%actionName%' => "index"
                 ]);
-                $msgView = "<br>The default view associated has been created in <b>" . UFileSystem::cleanPathname(\ROOT . \DS . $viewDir) . "</b>";
-                $indexContent = "\$this->loadView(\"" . $controllerName . "/index.html\");";
+                $msgView = "<br>The default view associated has been created in <b>" . UFileSystem::cleanPathname($viewDir) . "</b>";
+                $indexContent = "\$this->loadView(\"" . DDDManager::getViewNamespace().$controllerName . "/index.html\");";
             }
             $variables = \array_merge([
                 '%controllerName%' => $controllerName,
