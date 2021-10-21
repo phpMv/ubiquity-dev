@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\scaffolding\creators;
 
+use Ubiquity\domains\DDDManager;
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\ScaffoldController;
 
@@ -18,7 +19,10 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
         $classContent = '';
         $nsc=\trim($this->controllerNS,'\\');
         $messages = [ ];
-        
+        $domain=DDDManager::getActiveDomain();
+		if($domain!=''){
+			$scaffoldController->_createMethod ( 'public','initialize','','',"\n\t\tparent::initialize();\n\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');");
+		}
         $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages,$classContent);
         
         $this->routePath ??= '{resource}';

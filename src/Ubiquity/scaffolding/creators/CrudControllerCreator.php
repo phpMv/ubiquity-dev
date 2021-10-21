@@ -2,6 +2,7 @@
 
 namespace Ubiquity\scaffolding\creators;
 
+use Ubiquity\domains\DDDManager;
 use Ubiquity\scaffolding\ScaffoldController;
 use Ubiquity\controllers\Startup;
 
@@ -43,6 +44,11 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$messages = [ ];
 
 		$scaffoldController->_createMethod ( 'public', '__construct', '', '', "\n\t\tparent::__construct();\n\$this->model=\"{$resource}\";" );
+
+		$domain=DDDManager::getActiveDomain();
+		if($domain!=''){
+			$scaffoldController->_createMethod ( 'public','initialize','','',"\n\t\tparent::initialize();\n\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');");
+		}
         $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages,$classContent);
 
 		$routePath = $this->controllerName;

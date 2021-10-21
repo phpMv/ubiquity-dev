@@ -81,6 +81,15 @@ abstract class ScaffoldController {
         return UFileSystem::openReplaceInTemplateFile($templateDir . "method.tpl", $keyAndValues);
     }
     
+    public function getInitialize(){
+		$domain=DDDManager::getActiveDomain();
+		$initialize='';
+		if($domain!=''){
+			$initialize="\n\tpublic function initialize(){\n\t\tparent::initialize();\n\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');\n\t}";
+		}
+		return $initialize;
+	}
+    
     public function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "") {
         $message = "";
         $templateDir = $this->getTemplateDir();
@@ -110,6 +119,7 @@ abstract class ScaffoldController {
                 '%controllerName%' => $controllerName,
                 '%indexContent%' => $indexContent,
                 '%namespace%' => $namespace,
+                '%initialize%'=> $this->getInitialize(),
                 '%route%'=>'',
                 '%uses%'=>''
             ],$variables);
