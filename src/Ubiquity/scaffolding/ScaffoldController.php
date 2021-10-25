@@ -30,6 +30,8 @@ abstract class ScaffoldController {
     
     protected $config;
     
+    protected $activeDb;
+    
     public static $views = [
         "CRUD" => [
             "index" => "@framework/crud/index.html",
@@ -305,21 +307,22 @@ abstract class ScaffoldController {
         if (! isset($theme) || $theme == '') {
             $theme = $this->config['templateEngineOptions']['activeTheme'] ?? null;
         }
-        if ($theme != null) {
+        if ($theme != null && DDDManager::getActiveDomain()!='') {
             $prefix = 'themes/' . $theme . '/';
         }
+        $viewFolder=DDDManager::getActiveViewFolder();
         $viewName = $prefix . $controller . '/' . $action . ".html";
-        UFileSystem::safeMkdir(\ROOT . \DS . 'views' . \DS . $prefix . $controller);
+        UFileSystem::safeMkdir($viewFolder. $prefix . $controller);
         $templateDir = $this->getTemplateDir();
-        UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', \ROOT . \DS . 'views' . \DS . $viewName, [
+        UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', $viewFolder . $viewName, [
             '%controllerName%' => $controller,
             '%actionName%' => $action
         ]);
-        return $viewName;
+        return DDDManager::getViewNamespace().$viewName;
     }
     
     public function createAuthCrudView($frameworkName, $controllerName, $newName, $useViewInheritance) {
-        $folder = \ROOT . \DS . 'views' . \DS . $controllerName;
+        $folder = DDDManager::getActiveViewFolder() . $controllerName;
         UFileSystem::safeMkdir($folder);
         try {
             $teInstance = Startup::getTemplateEngineInstance();
@@ -357,4 +360,19 @@ abstract class ScaffoldController {
     public function setConfig($config) {
         $this->config = $config;
     }
+
+	/**
+	 * @param string $activeDb
+	 */
+	public function setActiveDb($activeDb): void {
+		$this->activeDb = $activeDb;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getActiveDb(): string {
+		return $this->activeDb;
+	}
+    
 }

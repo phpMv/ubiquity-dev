@@ -43,11 +43,11 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$nsc=\trim($this->controllerNS,'\\');
 		$messages = [ ];
 
-		$scaffoldController->_createMethod ( 'public', '__construct', '', '', "\n\t\tparent::__construct();\n\$this->model=\"{$resource}\";" );
+		//$scaffoldController->_createMethod ( 'public', '__construct', '', '', "\n\t\tparent::__construct();\n\$this->model=\"{$resource}\";" );
 
 		$domain=DDDManager::getActiveDomain();
 		if($domain!=''){
-			$scaffoldController->_createMethod ( 'public','initialize','','',"\n\t\tparent::initialize();\n\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');");
+			$classContent.=$scaffoldController->_createMethod ( 'public','initialize','','',"\t\tparent::initialize();\n\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');");
 		}
         $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages,$classContent);
 
@@ -106,11 +106,12 @@ class CrudControllerCreator extends BaseControllerCreator {
 		$this->addUses("{$nsc}\\crud\\files\\{$crudControllerName}Files","Ubiquity\\controllers\\crud\\CRUDFiles");
 		$classContent .= $this->scaffoldController->_createMethod ( "protected", "getFiles", "", ": CRUDFiles", "\t\treturn new {$crudControllerName}Files();" );
 		$classFilesContent = [ ];
+		$viewNamespace=DDDManager::getViewNamespace();
 		foreach ( $crudViews as $file ) {
 			if (isset ( ScaffoldController::$views [$this->viewKey] [$file] )) {
 			    $frameworkViewname = ScaffoldController::$views [$this->viewKey] [$file];
 				$this->scaffoldController->createAuthCrudView ( $frameworkViewname, $crudControllerName, $file ,$this->useViewInheritance);
-				$classFilesContent [] = $this->scaffoldController->_createMethod ( 'public', 'getView' . \ucfirst ( $file ), '', '', "\t\treturn \"" . $crudControllerName . "/" . $file . ".html\";" );
+				$classFilesContent [] = $this->scaffoldController->_createMethod ( 'public', 'getView' . \ucfirst ( $file ), '', '', "\t\treturn \"" .$viewNamespace.$crudControllerName . "/" . $file . ".html\";" );
 			}
 		}
 		$messages [] = $this->createCRUDFilesClass ( \implode ( '', $classFilesContent ) );

@@ -1,6 +1,8 @@
 <?php
 namespace Ubiquity\scaffolding\creators;
 
+use Ubiquity\cache\CacheManager;
+use Ubiquity\controllers\Startup;
 use Ubiquity\domains\DDDManager;
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\ScaffoldController;
@@ -20,8 +22,22 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
         $nsc=\trim($this->controllerNS,'\\');
         $messages = [ ];
         $domain=DDDManager::getActiveDomain();
+        $initializeContent='';
 		if($domain!=''){
-			$scaffoldController->_createMethod ( 'public','initialize','','',"\n\t\tparent::initialize();\n\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');");
+			$initializeContent="\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');";
+		}
+		if(($aDb=$this->scaffoldController->getActiveDb())!=null){
+			if($aDb!=='default') {
+				$ns=CacheManager::getModelsNamespace(Startup::$config,$aDb);
+				if(isset($ns)) {
+					$classContent .= $scaffoldController->_createMethod('protected', 'getModelName', '', '', "\t\treturn '".$ns."\\\\'.\ucfirst(\$this->resource);");
+					$classContent .= $scaffoldController->_createMethod('protected', 'getIndexModels', '', ': array ', "\t\treturn \Ubiquity\orm\DAO::getModels('".$aDb."');");
+					$initializeContent .= "\n\t\t\Ubiquity\orm\DAO::start();";
+				}
+			}
+		}
+		if($initializeContent!==''){
+			$classContent.=$scaffoldController->_createMethod ( 'public','initialize','','',$initializeContent."\n\t\tparent::initialize();");
 		}
         $this->createElements($nsc, $crudControllerName, $scaffoldController, $messages,$classContent);
         
