@@ -28,7 +28,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator{
 		}
 		if(($aDb=$this->scaffoldController->getActiveDb())!=null){
 			if($aDb!=='default') {
-				$ns=CacheManager::getModelsNamespace(Startup::$config,$aDb);
+				$ns=CacheManager::getModelsNamespace($aDb);
 				if(isset($ns)) {
 					$classContent .= $scaffoldController->_createMethod('protected', 'getModelName', '', '', "\t\treturn '".$ns."\\\\'.\ucfirst(\$this->resource);");
 					$classContent .= $scaffoldController->_createMethod('protected', 'getIndexModels', '', ': array ', "\t\treturn \Ubiquity\orm\DAO::getModels('".$aDb."');");
