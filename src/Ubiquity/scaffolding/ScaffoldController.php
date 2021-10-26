@@ -5,6 +5,7 @@ use Ubiquity\cache\CacheManager;
 use Ubiquity\cache\ClassUtils;
 use Ubiquity\controllers\Startup;
 use Ubiquity\creator\HasUsesTrait;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\scaffolding\creators\AuthControllerCreator;
 use Ubiquity\scaffolding\creators\CrudControllerCreator;
 use Ubiquity\scaffolding\creators\IndexCrudControllerCreator;
@@ -28,6 +29,8 @@ abstract class ScaffoldController {
     use HasUsesTrait;
     
     protected $config;
+    
+    protected $activeDb;
     
     public static $views = [
         "CRUD" => [
@@ -80,6 +83,15 @@ abstract class ScaffoldController {
         return UFileSystem::openReplaceInTemplateFile($templateDir . "method.tpl", $keyAndValues);
     }
     
+    public function getInitialize(){
+		$domain=DDDManager::getActiveDomain();
+		$initialize='';
+		if($domain!=''){
+			$initialize="\n\tpublic function initialize(){\n\t\tparent::initialize();\n\t\t\Ubiquity\domains\DDDManager::setDomain('".$domain."');\n\t}";
+		}
+		return $initialize;
+	}
+    
     public function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "") {
         $message = "";
         $templateDir = $this->getTemplateDir();
@@ -95,20 +107,21 @@ abstract class ScaffoldController {
             $msgView = '';
             $indexContent = '';
             if ($hasView) {
-                $viewDir = \ROOT . \DS . 'views' . \DS . $controllerName . \DS;
+                $viewDir = DDDManager::getActiveViewFolder() . $controllerName . \DS;
                 UFileSystem::safeMkdir($viewDir);
                 $viewName = $viewDir . \DS . 'index.html';
                 UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', $viewName, [
                     '%controllerName%' => $controllerName,
                     '%actionName%' => "index"
                 ]);
-                $msgView = "<br>The default view associated has been created in <b>" . UFileSystem::cleanPathname(\ROOT . \DS . $viewDir) . "</b>";
-                $indexContent = "\$this->loadView(\"" . $controllerName . "/index.html\");";
+                $msgView = "<br>The default view associated has been created in <b>" . UFileSystem::cleanPathname($viewDir) . "</b>";
+                $indexContent = "\$this->loadView(\"" . DDDManager::getViewNamespace().$controllerName . "/index.html\");";
             }
             $variables = \array_merge([
                 '%controllerName%' => $controllerName,
                 '%indexContent%' => $indexContent,
                 '%namespace%' => $namespace,
+                '%initialize%'=> $this->getInitialize(),
                 '%route%'=>'',
                 '%uses%'=>''
             ],$variables);
@@ -294,21 +307,22 @@ abstract class ScaffoldController {
         if (! isset($theme) || $theme == '') {
             $theme = $this->config['templateEngineOptions']['activeTheme'] ?? null;
         }
-        if ($theme != null) {
+        if ($theme != null && DDDManager::getActiveDomain()!='') {
             $prefix = 'themes/' . $theme . '/';
         }
+        $viewFolder=DDDManager::getActiveViewFolder();
         $viewName = $prefix . $controller . '/' . $action . ".html";
-        UFileSystem::safeMkdir(\ROOT . \DS . 'views' . \DS . $prefix . $controller);
+        UFileSystem::safeMkdir($viewFolder. $prefix . $controller);
         $templateDir = $this->getTemplateDir();
-        UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', \ROOT . \DS . 'views' . \DS . $viewName, [
+        UFileSystem::openReplaceWriteFromTemplateFile($templateDir . 'view.tpl', $viewFolder . $viewName, [
             '%controllerName%' => $controller,
             '%actionName%' => $action
         ]);
-        return $viewName;
+        return DDDManager::getViewNamespace().$viewName;
     }
     
     public function createAuthCrudView($frameworkName, $controllerName, $newName, $useViewInheritance) {
-        $folder = \ROOT . \DS . 'views' . \DS . $controllerName;
+        $folder = DDDManager::getActiveViewFolder() . $controllerName;
         UFileSystem::safeMkdir($folder);
         try {
             $teInstance = Startup::getTemplateEngineInstance();
@@ -346,4 +360,19 @@ abstract class ScaffoldController {
     public function setConfig($config) {
         $this->config = $config;
     }
+
+	/**
+	 * @param string $activeDb
+	 */
+	public function setActiveDb($activeDb): void {
+		$this->activeDb = $activeDb;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getActiveDb(): string {
+		return $this->activeDb;
+	}
+    
 }

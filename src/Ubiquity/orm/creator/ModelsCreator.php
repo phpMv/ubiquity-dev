@@ -49,7 +49,7 @@ abstract class ModelsCreator {
 		$nsPostfix = '';
 		if ($offset !== 'default') {
 			$dirPostfix = \DS . $offset;
-			$nsPostfix = '\\' . $offset;
+			$nsPostfix = $offset;
 		}
 		$modelsDir = Startup::getModelsCompletePath() . $dirPostfix;
 		if (UFileSystem::safeMkdir($modelsDir)) {
@@ -57,7 +57,7 @@ abstract class ModelsCreator {
 			CacheManager::checkCache($config);
 
 			foreach ($this->tables as $table) {
-				$class = new Model($engine, $table, $config['mvcNS']['models'] . $nsPostfix, $memberAccess);
+				$class = new Model($engine, $table, Startup::getNS('models') . $nsPostfix, $memberAccess);
 				$class->setDatabase($offset);
 
 				$fieldsInfos = $this->getFieldsInfos($table);
