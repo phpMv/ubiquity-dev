@@ -79,7 +79,7 @@ class TableReversor {
 	protected function generatePks(DbGenerator $generator, $primaryKeys, $table, $fieldTypes, $nullables) {
 		$generator->addKey($table, $primaryKeys);
 		if (\count($primaryKeys) === 1 && $generator->isInt($fieldTypes[\current($primaryKeys)])) {
-			$generator->addAutoInc($table, $this->getFieldAttributes($generator, \current($primaryKeys), $nullables, $fieldTypes));
+			$generator->addAutoInc($table, $this->getFieldAttributes($generator, \current($primaryKeys), $nullables, $fieldTypes,true));
 		}
 	}
 
@@ -91,8 +91,8 @@ class TableReversor {
 		return $fieldsAttributes;
 	}
 
-	public function getFieldAttributes(DbGenerator $generator, $field, $nullables, $fieldTypes) {
-		return $generator->generateField($this->_generateFieldAttributes($field, $nullables, $fieldTypes));
+	public function getFieldAttributes(DbGenerator $generator, $field, $nullables, $fieldTypes,$forPk=false) {
+		return $generator->generateField($this->_generateFieldAttributes($field, $nullables, $fieldTypes),$forPk);
 	}
 
 	protected function _generateFieldAttributes($field, $nullables, $fieldTypes) {

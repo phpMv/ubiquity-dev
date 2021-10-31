@@ -149,19 +149,19 @@ class DbGenerator {
 		return $name;
 	}
 
-	public function generateField($fieldAttributes) {
-		$fieldAttributes = $this->checkFieldAttributes($fieldAttributes);
+	public function generateField($fieldAttributes,$forPk=false) {
+		$fieldAttributes = $this->checkFieldAttributes($fieldAttributes,$forPk);
 		return $this->replaceArrayMask($fieldAttributes, $this->fieldMask);
 	}
 
-	protected function checkFieldAttributes($fieldAttributes) {
+	protected function checkFieldAttributes($fieldAttributes,$forPk=false) {
 		$result = $fieldAttributes;
 		$type = $fieldAttributes["type"];
 		$existingType = false;
 		$strType = DbTypes::getType($type);
 		if (isset($strType)) {
 			if (isset($this->fieldTypes[$strType])) {
-				if (! isset($fieldAttributes["extra"]) || $fieldAttributes["extra"] == "") {
+				if (!$forPk && (! isset($fieldAttributes["extra"]) || $fieldAttributes["extra"] == "")) {
 					$result["extra"] = "DEFAULT " . $this->fieldTypes[$strType];
 				}
 				$existingType = true;
@@ -258,6 +258,6 @@ class DbGenerator {
 		if (isset($this->sqlScript["constraints"])) {
 			$scripts = \array_merge($scripts, $this->sqlScript["constraints"]);
 		}
-		return \implode(";\n", $scripts);
+		return \implode(";\n", $scripts).';';
 	}
 }
