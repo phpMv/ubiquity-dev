@@ -12,7 +12,7 @@ use Ubiquity\db\utils\DbTypes;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.5
+ * @version 1.0.6
  * @category ubiquity.dev
  *
  */
@@ -52,8 +52,10 @@ class ModelParser {
 
 	protected function initSwapClasses($className) {
 		if (\class_exists('\\Ubiquity\\security\\acl\\AclManager', true)) {
-			$swapClasses = \Ubiquity\security\acl\AclManager::getModelClassesSwap();
-			$this->swapClasses += $swapClasses[$className] ?? [];
+			if (\Ubiquity\security\acl\AclManager::isStarted()) {
+				$swapClasses = \Ubiquity\security\acl\AclManager::getModelClassesSwap();
+				$this->swapClasses += $swapClasses[$className] ?? [];
+			}
 		}
 	}
 
@@ -106,22 +108,22 @@ class ModelParser {
 			$this->fieldNames[$propName] = $fieldName;
 			$this->memberNames[$fieldName] = $propName;
 			$nullable = Reflexion::isNullable($modelClass, $propName);
-			
+
 			$serializable = Reflexion::isSerializable($modelClass, $propName);
 
-			if (! $serializable){
+			if (! $serializable) {
 				$this->notSerializableMembers[] = $propName;
 			}
 			$type = Reflexion::getDbType($modelClass, $propName);
 			if ($type == null) {
 				$type = 'mixed';
 			}
-			
-			if(\array_search($fieldName, $primaryKeys)!==false && DbTypes::isInt($type)){
-				$nullable=true;
+
+			if (\array_search($fieldName, $primaryKeys) !== false && DbTypes::isInt($type)) {
+				$nullable = true;
 			}
-			
-			if ($nullable){
+
+			if ($nullable) {
 				$this->nullableMembers[] = $propName;
 			}
 			$this->fieldTypes[$propName] = $type;
