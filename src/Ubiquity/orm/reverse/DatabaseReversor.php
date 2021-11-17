@@ -31,16 +31,6 @@ class DatabaseReversor {
 		$this->database = $databaseOffset;
 	}
 
-	public function getDatabaseMeta() {
-		$db = DAO::getDatabase();
-		if ($db->isConnected()) {
-			$tables = $db->getTablesName();
-			foreach ($tables as $table) {
-				// $this->databaseMetas[$table]=;//TODO to continue
-			}
-		}
-	}
-
 	public function createDatabase(string $name, bool $createDb = true): void {
 		if ($createDb) {
 			$this->generator->createDatabase($name);
