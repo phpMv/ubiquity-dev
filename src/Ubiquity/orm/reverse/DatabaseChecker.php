@@ -85,26 +85,49 @@ class DatabaseChecker {
 			$fkField = $joinColumn['name'];
 			$fkTable = $this->metadatas[$fkClass]['#tableName'];
 			$fkId = $this->metadatas[$fkClass]['#primaryKeys'][0] ?? 'id';
-			$originalFks = $this->db->getForeignKeys($fkTable, $fkId);
-			$findedFk = false;
-			foreach ($originalFks as $ofk) {
-				if ($ofk['TABLE_NAME'] === $table && $ofk['COLUMN_NAME'] === $fkField) {
-					$findedFk = true;
-					break;
-				}
-			}
-			if (! $findedFk) {
-				$result[] = [
-					'table' => $table,
-					'column' => $fkField,
-					'fkTable' => $fkTable,
-					'$fkId' => $fkId
-				];
-			}
+			$result = \array_merge($result, $this->checkFk($table, $fkField, $fkTable, $fkId));
 		}
 		return $result;
 	}
 
-	public function checkManyToMany(string $model): array {}
+	private function checkFk($table, $fkField, $fkTable, $fkId) {
+		$result = [];
+		$originalFks = $this->db->getForeignKeys($fkTable, $fkId);
+		$findedFk = false;
+		foreach ($originalFks as $ofk) {
+			if ($ofk['TABLE_NAME'] === $table && $ofk['COLUMN_NAME'] === $fkField) {
+				$findedFk = true;
+				break;
+			}
+		}
+		if (! $findedFk) {
+			$result[] = [
+				'table' => $table,
+				'column' => $fkField,
+				'fkTable' => $fkTable,
+				'$fkId' => $fkId
+			];
+		}
+	}
+
+	public function checkManyToMany(string $model): array {
+		$metadatas = $this->metadatas[$model];
+		$manyToManys = $metadatas['#manyToMany'];
+		$joinTables = $metadatas['#joinTable'];
+		$table = $metadatas['#tableName'];
+		$result = [];
+		foreach ($manyToManys as $member => $manyToManyInfos) {
+			$joinTableInfos = $joinTables[$member];
+			$joinTableName = $joinTableInfos['name'];
+			$targetEntity = $manyToManyInfos['targetEntity'];
+			$fkTable = $this->metadatas[$targetEntity]['#tableName'];
+			$fkId = $this->metadatas[$targetEntity]['#primaryKeys'][0] ?? 'id';
+			$inversedBy = $manyToManyInfos['inversedBy'];
+			$fkId = $joinTableInfos['inverseJoinColumns']['referencedColumnName'] ?? $fkId;
+			$fkField = $joinTableInfos['inverseJoinColumns']['name'] ?? ($fkId . \ucfirst($fkTable));
+			$result = \array_merge($result, $this->checkFk($table, $fkField, $fkTable, $fkId));
+		}
+		return $result;
+	}
 }
 
