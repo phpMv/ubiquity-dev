@@ -41,9 +41,9 @@ class DatabaseChecker {
 
 	public function getUpdatedFields(string $model): array {
 		$metadatas = $this->metadatas[$model];
-		$fields = $this->metadatas['#fieldNames'];
-		$fieldTypes = $this->metadatas['#fieldTypes'];
-		$nullables = $this->metadatas['#nullable'];
+		$fields = $metadatas['#fieldNames'];
+		$fieldTypes = $metadatas['#fieldTypes'];
+		$nullables = $metadatas['#nullable'];
 		$originalFieldInfos = $this->db->getFieldsInfos($metadatas['#tableName']);
 		$result = [];
 		foreach ($fields as $member => $field) {
@@ -54,7 +54,7 @@ class DatabaseChecker {
 			];
 			if (! isset($originalFieldInfos[$field])) {
 				$result['missing'][$field] = $fieldInfos;
-			} elseif ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type'] || ($originalFieldInfos[$field]['Null'] && ! $nullable)) {
+			} elseif ($fieldTypes[$member] !== 'mixed' && ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type']) || ($originalFieldInfos[$field]['Nullable'] !== 'NO' && ! $nullable)) {
 				$result['updated'][$field] = $fieldInfos;
 			}
 		}
@@ -92,7 +92,7 @@ class DatabaseChecker {
 
 	private function checkFk($table, $fkField, $fkTable, $fkId) {
 		$result = [];
-		$originalFks = $this->db->getForeignKeys($fkTable, $fkId);
+		$originalFks = $this->db->getForeignKeys($fkTable, $fkId, $this->db->getDbName());
 		$findedFk = false;
 		foreach ($originalFks as $ofk) {
 			if ($ofk['TABLE_NAME'] === $table && $ofk['COLUMN_NAME'] === $fkField) {
@@ -108,6 +108,7 @@ class DatabaseChecker {
 				'$fkId' => $fkId
 			];
 		}
+		return $result;
 	}
 
 	public function checkManyToMany(string $model): array {
@@ -125,7 +126,7 @@ class DatabaseChecker {
 			$inversedBy = $manyToManyInfos['inversedBy'];
 			$fkId = $joinTableInfos['inverseJoinColumns']['referencedColumnName'] ?? $fkId;
 			$fkField = $joinTableInfos['inverseJoinColumns']['name'] ?? ($fkId . \ucfirst($fkTable));
-			$result = \array_merge($result, $this->checkFk($table, $fkField, $fkTable, $fkId));
+			$result = \array_merge($result, $this->checkFk($joinTableName, $fkField, $fkTable, $fkId));
 		}
 		return $result;
 	}
