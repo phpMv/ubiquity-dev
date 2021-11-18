@@ -7,6 +7,16 @@ use Ubiquity\cache\CacheManager;
 use Ubiquity\controllers\Startup;
 use Ubiquity\orm\parser\Reflexion;
 
+/**
+ * Check a database with models & cache info.
+ * Ubiquity\orm\reverse$DatabaseChecker
+ * This class is part of Ubiquity
+ *
+ * @author jcheron <myaddressmail@gmail.com>
+ * @version 1.0.0
+ * @package Ubiquity.dev
+ *
+ */
 class DatabaseChecker {
 
 	private string $dbOffset;
@@ -115,7 +125,6 @@ class DatabaseChecker {
 		$metadatas = $this->metadatas[$model];
 		$manyToManys = $metadatas['#manyToMany'];
 		$joinTables = $metadatas['#joinTable'];
-		$table = $metadatas['#tableName'];
 		$result = [];
 		foreach ($manyToManys as $member => $manyToManyInfos) {
 			$joinTableInfos = $joinTables[$member];
@@ -123,7 +132,6 @@ class DatabaseChecker {
 			$targetEntity = $manyToManyInfos['targetEntity'];
 			$fkTable = $this->metadatas[$targetEntity]['#tableName'];
 			$fkId = $this->metadatas[$targetEntity]['#primaryKeys'][0] ?? 'id';
-			$inversedBy = $manyToManyInfos['inversedBy'];
 			$fkId = $joinTableInfos['inverseJoinColumns']['referencedColumnName'] ?? $fkId;
 			$fkField = $joinTableInfos['inverseJoinColumns']['name'] ?? ($fkId . \ucfirst($fkTable));
 			$result = \array_merge($result, $this->checkFk($joinTableName, $fkField, $fkTable, $fkId));
