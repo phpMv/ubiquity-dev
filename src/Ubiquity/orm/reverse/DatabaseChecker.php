@@ -8,7 +8,7 @@ use Ubiquity\controllers\Startup;
 use Ubiquity\orm\parser\Reflexion;
 
 /**
- * Check a database with models & cache info.
+ * Check the differences between the database and models & cache info.
  * Ubiquity\orm\reverse$DatabaseChecker
  * This class is part of Ubiquity
  *
@@ -26,6 +26,8 @@ class DatabaseChecker {
 	private array $models;
 
 	private array $metadatas;
+
+	private array $nonExistingTables;
 
 	public function __construct(string $dbOffset = 'default') {
 		$this->dbOffset = $dbOffset;
@@ -49,23 +51,60 @@ class DatabaseChecker {
 		return \array_diff($tables, $existingTables);
 	}
 
+	private function _getNonExistingTables() {
+		return $this->nonExistingTables ??= $this->getNonExistingTables();
+	}
+
+	public function checkAll(): array {
+		$result = [];
+		if ($this->checkDatabase()) {
+			$result['nonExistingTables'] = $this->_getNonExistingTables();
+			foreach ($this->models as $model) {
+				$metadatas = $this->metadatas[$model];
+				$tableName = $metadatas['#tableName'];
+				$updatedPks = $this->checkPrimaryKeys($model);
+				if (\count($updatedPks) > 0) {
+					$result['pks'][$tableName] = $updatedPks;
+				}
+				$updatedFields = $this->getUpdatedFields($model);
+				if (\count($updatedFields) > 0) {
+					$result['updatedFields'][$tableName] = $updatedFields;
+				}
+				$manyToOneUpdateds = $this->checkManyToOne($model);
+				if (\count($updatedFields) > 0) {
+					$result['manyToOne'][$tableName] = $manyToOneUpdateds;
+				}
+				$manyToManyUpdateds = $this->checkManyToMany($model);
+				if (\count($updatedFields) > 0) {
+					$result['manyToMany'][$tableName] = $manyToManyUpdateds;
+				}
+			}
+		} else {
+			$result['database'] = $this->dbOffset;
+		}
+		return $result;
+	}
+
 	public function getUpdatedFields(string $model): array {
 		$metadatas = $this->metadatas[$model];
 		$fields = $metadatas['#fieldNames'];
 		$fieldTypes = $metadatas['#fieldTypes'];
 		$nullables = $metadatas['#nullable'];
+		$notSerializable = $metadatas['#notSerializable'];
 		$originalFieldInfos = $this->db->getFieldsInfos($metadatas['#tableName']);
 		$result = [];
 		foreach ($fields as $member => $field) {
-			$nullable = \array_search($member, $nullables) !== false;
-			$fieldInfos = [
-				'Type' => $fieldTypes[$member],
-				'Null' => $nullable
-			];
-			if (! isset($originalFieldInfos[$field])) {
-				$result['missing'][$field] = $fieldInfos;
-			} elseif ($fieldTypes[$member] !== 'mixed' && ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type']) || ($originalFieldInfos[$field]['Nullable'] !== 'NO' && ! $nullable)) {
-				$result['updated'][$field] = $fieldInfos;
+			if (\array_search($member, $notSerializable) === false) {
+				$nullable = \array_search($member, $nullables) !== false;
+				$fieldInfos = [
+					'Type' => $fieldTypes[$member],
+					'Null' => $nullable
+				];
+				if (! isset($originalFieldInfos[$field])) {
+					$result['missing'][$field] = $fieldInfos;
+				} elseif ($fieldTypes[$member] !== 'mixed' && ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type']) || ($originalFieldInfos[$field]['Nullable'] !== 'NO' && ! $nullable)) {
+					$result['updated'][$field] = $fieldInfos;
+				}
 			}
 		}
 		return $result;
@@ -75,9 +114,11 @@ class DatabaseChecker {
 		$metadatas = $this->metadatas[$model];
 		$pks = $metadatas['#primaryKeys'];
 		$originalPks = $this->db->getPrimaryKeys($metadatas['#tableName']);
-		foreach ($pks as $pk) {
-			if (\array_search($pk, $originalPks) === false) {
-				return $pks;
+		if (\is_array($pks)) {
+			foreach ($pks as $pk) {
+				if (\array_search($pk, $originalPks) === false) {
+					return $pks;
+				}
 			}
 		}
 		return [];
@@ -85,8 +126,8 @@ class DatabaseChecker {
 
 	public function checkManyToOne(string $model): array {
 		$metadatas = $this->metadatas[$model];
-		$manyToOnes = $metadatas['#manyToOne'];
-		$joinColumns = $metadatas['#joinColumn'];
+		$manyToOnes = $metadatas['#manyToOne'] ?? [];
+		$joinColumns = $metadatas['#joinColumn'] ?? [];
 		$table = $metadatas['#tableName'];
 		$result = [];
 		foreach ($manyToOnes as $manyToOneMember) {
@@ -123,8 +164,8 @@ class DatabaseChecker {
 
 	public function checkManyToMany(string $model): array {
 		$metadatas = $this->metadatas[$model];
-		$manyToManys = $metadatas['#manyToMany'];
-		$joinTables = $metadatas['#joinTable'];
+		$manyToManys = $metadatas['#manyToMany'] ?? [];
+		$joinTables = $metadatas['#joinTable'] ?? [];
 		$result = [];
 		foreach ($manyToManys as $member => $manyToManyInfos) {
 			$joinTableInfos = $joinTables[$member];
@@ -139,4 +180,3 @@ class DatabaseChecker {
 		return $result;
 	}
 }
-
