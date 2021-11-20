@@ -266,7 +266,7 @@ class DbGenerator {
 	}
 
 	public function __toString() {
-		$scripts = \array_merge($this->sqlScript["head"], $this->sqlScript["body"]);
+		$scripts = \array_merge($this->sqlScript["head"]??[], $this->sqlScript["body"]??[]);
 		if (isset($this->sqlScript["before-constraints"])) {
 			$scripts = \array_merge($scripts, $this->sqlScript["before-constraints"]);
 		}

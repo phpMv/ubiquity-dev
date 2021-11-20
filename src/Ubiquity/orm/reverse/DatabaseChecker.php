@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\orm\reverse;
 
+use Ubiquity\exceptions\DAOException;
 use Ubiquity\orm\DAO;
 use Ubiquity\db\Database;
 use Ubiquity\cache\CacheManager;
@@ -40,8 +41,12 @@ class DatabaseChecker {
 	}
 
 	public function checkDatabase(): bool {
-		$this->db = DAO::getDatabase($this->dbOffset);
-		return isset($this->db) && $this->db->isConnected();
+		try {
+			$this->db = DAO::getDatabase($this->dbOffset);
+			return $this->databaseExist=isset($this->db) && $this->db->isConnected();
+		}catch (DAOException $e){
+			return $this->databaseExist=false;
+		}
 	}
 
 	public function getNonExistingTables(): array {
@@ -51,7 +56,10 @@ class DatabaseChecker {
 		}
 		$tables = Reflexion::getAllJoinTables($this->models);
 		foreach ($this->metadatas as $metas) {
-			$tables[] = $metas['#tableName'];
+			$tablename=$metas['#tableName'];
+			if(\array_search($tablename,$existingTables)===false && \array_search($tablename,$tables)===false ) {
+				$tables[] = $tablename;
+			}
 		}
 		return \array_diff($tables, $existingTables);
 	}
@@ -65,7 +73,6 @@ class DatabaseChecker {
 		$this->databaseExist = true;
 		if (! $this->checkDatabase()) {
 			$result['database'] = $this->dbOffset;
-			$this->databaseExist = false;
 		}
 		$result['nonExistingTables'] = $this->_getNonExistingTables();
 		foreach ($this->models as $model) {
@@ -172,7 +179,7 @@ class DatabaseChecker {
 				'table' => $table,
 				'column' => $fkField,
 				'fkTable' => $fkTable,
-				'$fkId' => $fkId
+				'fkId' => $fkId
 			];
 		}
 		return $result;
