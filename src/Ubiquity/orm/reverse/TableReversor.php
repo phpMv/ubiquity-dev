@@ -36,6 +36,10 @@ class TableReversor {
 		$this->metas = $metas;
 	}
 
+	public function getTable() {
+		return $this->metas['#tableName'];
+	}
+
 	public function generateSQL(DbGenerator $generator) {
 		$table = $this->metas['#tableName'];
 		$primaryKeys = $this->metas['#primaryKeys'];
@@ -43,11 +47,7 @@ class TableReversor {
 		$nullables = $this->metas['#nullable'];
 		$fieldTypes = $this->metas['#fieldTypes'];
 		$manyToOnes = $this->metas['#manyToOne'];
-		$manyToManys = [];
-		if (isset($this->metas['#manyToMany'])) {
-			$manyToManys = $this->metas['#manyToMany'];
-		}
-		$this->scanManyToManys($generator, $manyToManys);
+		$this->scanManyToManys($generator);
 		$this->generatePks($generator, $primaryKeys, $table, $fieldTypes, $nullables);
 		$this->generateForeignKeys($generator, $manyToOnes, $table);
 		$serializables = \array_unique(\array_merge($serializables, $this->fkFieldsToAdd));
@@ -67,11 +67,14 @@ class TableReversor {
 		return \array_diff($fieldNames, $notSerializable);
 	}
 
-	protected function scanManyToManys(DbGenerator $generator, $manyToManys) {
-		foreach ($manyToManys as $member => $manyToMany) {
-			if (isset($this->metas['#joinTable'][$member])) {
-				$annotJoinTable = $this->metas['#joinTable'][$member];
-				$generator->addManyToMany($annotJoinTable['name'], $manyToMany['targetEntity']);
+	public function scanManyToManys(DbGenerator $generator) {
+		if (isset($this->metas['#manyToMany'])) {
+			$manyToManys = $this->metas['#manyToMany'];
+			foreach ($manyToManys as $member => $manyToMany) {
+				if (isset($this->metas['#joinTable'][$member])) {
+					$annotJoinTable = $this->metas['#joinTable'][$member];
+					$generator->addManyToMany($annotJoinTable['name'], $manyToMany['targetEntity']);
+				}
 			}
 		}
 	}
@@ -79,7 +82,7 @@ class TableReversor {
 	protected function generatePks(DbGenerator $generator, $primaryKeys, $table, $fieldTypes, $nullables) {
 		$generator->addKey($table, $primaryKeys);
 		if (\count($primaryKeys) === 1 && $generator->isInt($fieldTypes[\current($primaryKeys)])) {
-			$generator->addAutoInc($table, $this->getFieldAttributes($generator, \current($primaryKeys), $nullables, $fieldTypes,true));
+			$generator->addAutoInc($table, $this->getFieldAttributes($generator, \current($primaryKeys), $nullables, $fieldTypes, true));
 		}
 	}
 
@@ -91,8 +94,8 @@ class TableReversor {
 		return $fieldsAttributes;
 	}
 
-	public function getFieldAttributes(DbGenerator $generator, $field, $nullables, $fieldTypes,$forPk=false) {
-		return $generator->generateField($this->_generateFieldAttributes($field, $nullables, $fieldTypes),$forPk);
+	public function getFieldAttributes(DbGenerator $generator, $field, $nullables, $fieldTypes, $forPk = false) {
+		return $generator->generateField($this->_generateFieldAttributes($field, $nullables, $fieldTypes), $forPk);
 	}
 
 	protected function _generateFieldAttributes($field, $nullables, $fieldTypes) {

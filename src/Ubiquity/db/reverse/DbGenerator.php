@@ -45,6 +45,8 @@ class DbGenerator {
 
 	protected $manyToManys = [];
 
+	protected $tablesToCreate;
+
 	public function isInt($fieldType) {
 		return DbTypes::isInt($fieldType);
 	}
@@ -61,6 +63,10 @@ class DbGenerator {
 		$this->autoIncMask = "ALTER TABLE %tableName% MODIFY %field% AUTO_INCREMENT, AUTO_INCREMENT=%value%";
 		$this->fieldTypes = DbTypes::TYPES;
 		$this->defaultType = DbTypes::DEFAULT_TYPE;
+	}
+
+	public function setTablesToCreate(array $tables) {
+		$this->tablesToCreate = $tables;
 	}
 
 	public function createDatabase($name) {
@@ -149,19 +155,19 @@ class DbGenerator {
 		return $name;
 	}
 
-	public function generateField($fieldAttributes,$forPk=false) {
-		$fieldAttributes = $this->checkFieldAttributes($fieldAttributes,$forPk);
+	public function generateField($fieldAttributes, $forPk = false) {
+		$fieldAttributes = $this->checkFieldAttributes($fieldAttributes, $forPk);
 		return $this->replaceArrayMask($fieldAttributes, $this->fieldMask);
 	}
 
-	protected function checkFieldAttributes($fieldAttributes,$forPk=false) {
+	protected function checkFieldAttributes($fieldAttributes, $forPk = false) {
 		$result = $fieldAttributes;
 		$type = $fieldAttributes["type"];
 		$existingType = false;
 		$strType = DbTypes::getType($type);
 		if (isset($strType)) {
 			if (isset($this->fieldTypes[$strType])) {
-				if (!$forPk && (! isset($fieldAttributes["extra"]) || $fieldAttributes["extra"] == "")) {
+				if (! $forPk && (! isset($fieldAttributes["extra"]) || $fieldAttributes["extra"] == "")) {
 					$result["extra"] = "DEFAULT " . $this->fieldTypes[$strType];
 				}
 				$existingType = true;
@@ -207,8 +213,17 @@ class DbGenerator {
 
 	public function generateManyToManys() {
 		foreach ($this->manyToManys as $joinTable => $targetEntities) {
-			$this->generateManyToMany($joinTable, $targetEntities);
+			if ($this->hasToCreateTable($joinTable)) {
+				$this->generateManyToMany($joinTable, $targetEntities);
+			}
 		}
+	}
+
+	public function hasToCreateTable(string $table) {
+		if (\is_array($this->tablesToCreate)) {
+			return array_search($table, $this->tablesToCreate) !== false;
+		}
+		return true;
 	}
 
 	protected function generateManyToMany($joinTable, $targetEntities) {
@@ -258,6 +273,6 @@ class DbGenerator {
 		if (isset($this->sqlScript["constraints"])) {
 			$scripts = \array_merge($scripts, $this->sqlScript["constraints"]);
 		}
-		return \implode(";\n", $scripts).';';
+		return \implode(";\n", $scripts) . ';';
 	}
 }

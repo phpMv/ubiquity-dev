@@ -21,6 +21,8 @@ class DatabaseChecker {
 
 	private string $dbOffset;
 
+	private $databaseExist;
+
 	private Database $db;
 
 	private array $models;
@@ -43,7 +45,10 @@ class DatabaseChecker {
 	}
 
 	public function getNonExistingTables(): array {
-		$existingTables = $this->db->getTablesName();
+		$existingTables = [];
+		if ($this->databaseExist) {
+			$existingTables = $this->db->getTablesName();
+		}
 		$tables = Reflexion::getAllJoinTables($this->models);
 		foreach ($this->metadatas as $metas) {
 			$tables[] = $metas['#tableName'];
@@ -57,31 +62,33 @@ class DatabaseChecker {
 
 	public function checkAll(): array {
 		$result = [];
-		if ($this->checkDatabase()) {
-			$result['nonExistingTables'] = $this->_getNonExistingTables();
-			foreach ($this->models as $model) {
-				$metadatas = $this->metadatas[$model];
-				$tableName = $metadatas['#tableName'];
-				$updatedPks = $this->checkPrimaryKeys($model);
-				if (\count($updatedPks) > 0) {
-					$result['pks'][$tableName] = $updatedPks;
-				}
-				$updatedFields = $this->getUpdatedFields($model);
-				if (\count($updatedFields) > 0) {
-					$result['updatedFields'][$tableName] = $updatedFields;
-				}
-				$manyToOneUpdateds = $this->checkManyToOne($model);
-				if (\count($updatedFields) > 0) {
-					$result['manyToOne'][$tableName] = $manyToOneUpdateds;
-				}
-				$manyToManyUpdateds = $this->checkManyToMany($model);
-				if (\count($updatedFields) > 0) {
-					$result['manyToMany'][$tableName] = $manyToManyUpdateds;
-				}
-			}
-		} else {
+		$this->databaseExist = true;
+		if (! $this->checkDatabase()) {
 			$result['database'] = $this->dbOffset;
+			$this->databaseExist = false;
 		}
+		$result['nonExistingTables'] = $this->_getNonExistingTables();
+		foreach ($this->models as $model) {
+			$metadatas = $this->metadatas[$model];
+			$tableName = $metadatas['#tableName'];
+			$updatedPks = $this->checkPrimaryKeys($model);
+			if (\count($updatedPks) > 0) {
+				$result['pks'][$tableName] = $updatedPks;
+			}
+			$updatedFields = $this->getUpdatedFields($model);
+			if (\count($updatedFields) > 0) {
+				$result['updatedFields'][$tableName] = $updatedFields;
+			}
+			$manyToOneUpdateds = $this->checkManyToOne($model);
+			if (\count($updatedFields) > 0) {
+				$result['manyToOne'][$tableName] = $manyToOneUpdateds;
+			}
+			$manyToManyUpdateds = $this->checkManyToMany($model);
+			if (\count($updatedFields) > 0) {
+				$result['manyToMany'][$tableName] = $manyToManyUpdateds;
+			}
+		}
+
 		return $result;
 	}
 
@@ -91,7 +98,10 @@ class DatabaseChecker {
 		$fieldTypes = $metadatas['#fieldTypes'];
 		$nullables = $metadatas['#nullable'];
 		$notSerializable = $metadatas['#notSerializable'];
-		$originalFieldInfos = $this->db->getFieldsInfos($metadatas['#tableName']);
+		$originalFieldInfos = [];
+		if ($this->databaseExist) {
+			$originalFieldInfos = $this->db->getFieldsInfos($metadatas['#tableName']);
+		}
 		$result = [];
 		foreach ($fields as $member => $field) {
 			if (\array_search($member, $notSerializable) === false) {
@@ -113,7 +123,10 @@ class DatabaseChecker {
 	public function checkPrimaryKeys(string $model): array {
 		$metadatas = $this->metadatas[$model];
 		$pks = $metadatas['#primaryKeys'];
-		$originalPks = $this->db->getPrimaryKeys($metadatas['#tableName']);
+		$originalPks = [];
+		if ($this->databaseExist) {
+			$originalPks = $this->db->getPrimaryKeys($metadatas['#tableName']);
+		}
 		if (\is_array($pks)) {
 			foreach ($pks as $pk) {
 				if (\array_search($pk, $originalPks) === false) {
@@ -143,7 +156,10 @@ class DatabaseChecker {
 
 	private function checkFk($table, $fkField, $fkTable, $fkId) {
 		$result = [];
-		$originalFks = $this->db->getForeignKeys($fkTable, $fkId, $this->db->getDbName());
+		$originalFks = [];
+		if ($this->databaseExist) {
+			$originalFks = $this->db->getForeignKeys($fkTable, $fkId, $this->db->getDbName());
+		}
 		$findedFk = false;
 		foreach ($originalFks as $ofk) {
 			if ($ofk['TABLE_NAME'] === $table && $ofk['COLUMN_NAME'] === $fkField) {
