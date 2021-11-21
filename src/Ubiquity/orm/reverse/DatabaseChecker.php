@@ -68,6 +68,10 @@ class DatabaseChecker {
 		return $this->nonExistingTables ??= $this->getNonExistingTables();
 	}
 
+	protected function tableExists(string $table): bool {
+		return \array_search($table,$this->_getNonExistingTables())===false;
+	}
+
 	public function checkAll(): array {
 		$result = [];
 		$this->databaseExist = true;
@@ -100,27 +104,31 @@ class DatabaseChecker {
 	}
 
 	public function getUpdatedFields(string $model): array {
-		$metadatas = $this->metadatas[$model];
-		$fields = $metadatas['#fieldNames'];
-		$fieldTypes = $metadatas['#fieldTypes'];
-		$nullables = $metadatas['#nullable'];
-		$notSerializable = $metadatas['#notSerializable'];
-		$originalFieldInfos = [];
-		if ($this->databaseExist) {
-			$originalFieldInfos = $this->db->getFieldsInfos($metadatas['#tableName']);
-		}
 		$result = [];
-		foreach ($fields as $member => $field) {
-			if (\array_search($member, $notSerializable) === false) {
-				$nullable = \array_search($member, $nullables) !== false;
-				$fieldInfos = [
-					'Type' => $fieldTypes[$member],
-					'Null' => $nullable
-				];
-				if (! isset($originalFieldInfos[$field])) {
-					$result['missing'][$field] = $fieldInfos;
-				} elseif ($fieldTypes[$member] !== 'mixed' && ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type']) || ($originalFieldInfos[$field]['Nullable'] !== 'NO' && ! $nullable)) {
-					$result['updated'][$field] = $fieldInfos;
+		$metadatas = $this->metadatas[$model];
+		$tableName=$metadatas['#tableName'];
+		if($this->tableExists($tableName)) {
+			$fields = $metadatas['#fieldNames'];
+			$fieldTypes = $metadatas['#fieldTypes'];
+			$nullables = $metadatas['#nullable'];
+			$notSerializable = $metadatas['#notSerializable'];
+			$originalFieldInfos = [];
+			if ($this->databaseExist) {
+				$originalFieldInfos = $this->db->getFieldsInfos($tableName);
+			}
+			foreach ($fields as $member => $field) {
+				if (\array_search($member, $notSerializable) === false) {
+					$nullable = \array_search($member, $nullables) !== false;
+					$fieldInfos = [
+						'table' => $tableName,
+						'name' => $field,
+						'attributes' => ['type' => $fieldTypes[$member], 'extra' => $nullable ? '' : 'NOT NULL']
+					];
+					if (!isset($originalFieldInfos[$field])) {
+						$result['missing'][$model][] = $fieldInfos;
+					} elseif ($fieldTypes[$member] !== 'mixed' && ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type']) || ($originalFieldInfos[$field]['Nullable'] !== 'NO' && !$nullable)) {
+						$result['updated'][$model][] = $fieldInfos;
+					}
 				}
 			}
 		}
@@ -129,15 +137,18 @@ class DatabaseChecker {
 
 	public function checkPrimaryKeys(string $model): array {
 		$metadatas = $this->metadatas[$model];
-		$pks = $metadatas['#primaryKeys'];
-		$originalPks = [];
-		if ($this->databaseExist) {
-			$originalPks = $this->db->getPrimaryKeys($metadatas['#tableName']);
-		}
-		if (\is_array($pks)) {
-			foreach ($pks as $pk) {
-				if (\array_search($pk, $originalPks) === false) {
-					return $pks;
+		$tableName = $metadatas['#tableName'];
+		if($this->tableExists($tableName)) {
+			$pks = $metadatas['#primaryKeys'];
+			$originalPks = [];
+			if ($this->databaseExist) {
+				$originalPks = $this->db->getPrimaryKeys($tableName);
+			}
+			if (\is_array($pks)) {
+				foreach ($pks as $pk) {
+					if (\array_search($pk, $originalPks) === false) {
+						return ['table'=>$tableName,'primaryKeys'=>$pks];
+					}
 				}
 			}
 		}
@@ -164,7 +175,7 @@ class DatabaseChecker {
 	private function checkFk($table, $fkField, $fkTable, $fkId) {
 		$result = [];
 		$originalFks = [];
-		if ($this->databaseExist) {
+		if ($this->databaseExist && $this->tableExists($table)) {
 			$originalFks = $this->db->getForeignKeys($fkTable, $fkId, $this->db->getDbName());
 		}
 		$findedFk = false;

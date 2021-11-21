@@ -72,6 +72,34 @@ class DatabaseReversor {
 			$this->generator->setTablesToCreate($tablesToCreate);
 			$this->createDatabase($this->getDbName(), false);
 		}
+		//TODO check each part
+		$config = Startup::getConfig();
+		$models = $this->models ?? CacheManager::getModels($config, true, $this->database);
+		foreach ($models as $model){
+			$tablereversor=new TableReversor($model);
+			$tablereversor->initFromClass();
+
+			$uFields=$checker->getUpdatedFields($model);
+			$missingFields=$uFields['missing'][$model]??[];
+			foreach ($missingFields as $missingField){
+				$this->generator->addField($missingField['table'],$missingField['name'],$missingField['attributes']);
+			}
+			$updatedFields=$uFields['updated'][$model]??[];
+			foreach ($updatedFields as $updatedField){
+				$this->generator->modifyField($updatedField['table'],$updatedField['name'],$updatedField['attributes']);
+			}
+			$missingPks=$checker->checkPrimaryKeys($model);
+			if(\count($missingPks)>0){
+				$pks=$missingPks['primaryKeys'];
+				$tablereversor->addPrimaryKeys($this->generator,$pks);
+			}
+			$missingFks=$checker->checkManyToOne($model);
+			if(\count($missingFks)>0){
+				foreach ($missingFks as $fk){
+					$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
+				}
+			}
+		}
 	}
 
 	public function __toString() {

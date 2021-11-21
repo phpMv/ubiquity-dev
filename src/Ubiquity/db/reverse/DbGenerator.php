@@ -35,6 +35,8 @@ class DbGenerator {
 
 	protected $selectDbMask;
 
+	protected $modifiyFieldMask;
+
 	protected $constraintNames = [];
 
 	protected $sqlScript = [];
@@ -61,6 +63,7 @@ class DbGenerator {
 		$this->foreignKeyMask = "ALTER TABLE %tableName% ADD CONSTRAINT %fkName% FOREIGN KEY (%fkFieldName%) REFERENCES %referencesTableName% (%referencesFieldName%) ON DELETE %onDelete% ON UPDATE %onUpdate%";
 		$this->alterTableAddKey = "ALTER TABLE %tableName% ADD %type% KEY (%pkFields%)";
 		$this->autoIncMask = "ALTER TABLE %tableName% MODIFY %field% AUTO_INCREMENT, AUTO_INCREMENT=%value%";
+		$this->modifiyFieldMask="ALTER TABLE %tableName% %operation% %field% %attributes%";
 		$this->fieldTypes = DbTypes::TYPES;
 		$this->defaultType = DbTypes::DEFAULT_TYPE;
 	}
@@ -130,13 +133,32 @@ class DbGenerator {
 		], $this->autoIncMask);
 		return $this->addScript("before-constraints", $script);
 	}
+	
+	public function addField($tableName,$fieldName,$fieldAttributes){
+		$this->addOrUpdateField($tableName,$fieldName,$fieldAttributes,'ADD');
+	}
 
+	public function modifyField($tableName,$fieldName,$fieldAttributes){
+		$this->addOrUpdateField($tableName,$fieldName,$fieldAttributes,'MODIFY');
+	}
+	
 	protected function addScript($key, $script) {
 		if (! isset($this->sqlScript[$key])) {
 			$this->sqlScript[$key] = [];
 		}
 		$this->sqlScript[$key][] = $script;
 		return $script;
+	}
+
+	protected function addOrUpdateField($tableName,$fieldName,$fieldAttributes,$operation='ADD'){
+		$fieldAttributes=$this->checkFieldAttributes($fieldAttributes,false);
+		$script = $this->replaceArrayMask([
+			'tableName' => $tableName,
+			'field' => $fieldName,
+			'attributes' => \implode(" ", $fieldAttributes),
+			'operation'=>$operation
+		], $this->modifiyFieldMask);
+		return $this->addScript('body', $script);
 	}
 
 	protected function checkConstraintName($name) {
@@ -162,19 +184,19 @@ class DbGenerator {
 
 	protected function checkFieldAttributes($fieldAttributes, $forPk = false) {
 		$result = $fieldAttributes;
-		$type = $fieldAttributes["type"];
+		$type = $fieldAttributes['type'];
 		$existingType = false;
 		$strType = DbTypes::getType($type);
 		if (isset($strType)) {
 			if (isset($this->fieldTypes[$strType])) {
-				if (! $forPk && (! isset($fieldAttributes["extra"]) || $fieldAttributes["extra"] == "")) {
-					$result["extra"] = "DEFAULT " . $this->fieldTypes[$strType];
+				if (! $forPk && (! isset($fieldAttributes['extra']) || $fieldAttributes['extra'] == '')) {
+					$result['extra'] = 'DEFAULT ' . $this->fieldTypes[$strType];
 				}
 				$existingType = true;
 			}
 		}
 		if (! $existingType) {
-			$result["type"] = $this->defaultType;
+			$result['type'] = $this->defaultType;
 		}
 		return $result;
 	}
@@ -188,9 +210,9 @@ class DbGenerator {
 	}
 
 	protected function replaceMask($key, $value, $mask) {
-		if (\strstr(\strtolower($key), "name"))
+		if (\strstr(\strtolower($key), 'name'))
 			$value = $this->nameProtection . $value . $this->nameProtection;
-		return \str_replace("%" . $key . "%", $value, $mask);
+		return \str_replace("%$key%", $value, $mask);
 	}
 
 	protected function replaceArrayMask($keyValues, $mask) {

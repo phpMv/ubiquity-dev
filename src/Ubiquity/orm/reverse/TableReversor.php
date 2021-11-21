@@ -78,9 +78,15 @@ class TableReversor {
 			}
 		}
 	}
+	
+	public function addPrimaryKeys(DbGenerator $generator,array $primayKeys){
+		$nullables = $this->metas['#nullable'];
+		$fieldTypes = $this->metas['#fieldTypes'];
+		$this->generatePks($generator,$primayKeys,$this->getTable(),$fieldTypes,$nullables);
+	}
 
 	protected function generatePks(DbGenerator $generator, $primaryKeys, $table, $fieldTypes, $nullables) {
-		if (\is_array($primaryKeys)) {
+		if(\is_array($primaryKeys)) {
 			$generator->addKey($table, $primaryKeys);
 			if (\count($primaryKeys) === 1 && $generator->isInt($fieldTypes[\current($primaryKeys)])) {
 				$generator->addAutoInc($table, $this->getFieldAttributes($generator, \current($primaryKeys), $nullables, $fieldTypes, true));
