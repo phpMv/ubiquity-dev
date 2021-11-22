@@ -37,7 +37,6 @@ class DatabaseReversor {
 		if ($createDb) {
 			$this->generator->createDatabase($name);
 		}
-		$this->generator->selectDatabase($name);
 		$config = Startup::getConfig();
 		$models = $this->models ?? CacheManager::getModels($config, true, $this->database);
 		foreach ($models as $model) {
@@ -63,14 +62,18 @@ class DatabaseReversor {
 
 	public function migrate(): void {
 		$checker = new DatabaseChecker($this->database);
+		$hasError=false;
+		$dbName=$this->getDbName();
 		if (! $checker->checkDatabase()) {
-			$this->createDatabase($this->getDbName());
+			$this->createDatabase($dbName);
+			$hasError=true;
 			return;
 		}
 		$tablesToCreate = $checker->getNonExistingTables();
 		if (\count($tablesToCreate) > 0) {
 			$this->generator->setTablesToCreate($tablesToCreate);
-			$this->createDatabase($this->getDbName(), false);
+			$this->createDatabase($dbName, false);
+			$hasError=true;
 		}
 		//TODO check each part
 		$config = Startup::getConfig();
@@ -85,20 +88,35 @@ class DatabaseReversor {
 				$this->generator->addField($missingField['table'],$missingField['name'],$missingField['attributes']);
 			}
 			$updatedFields=$uFields['updated'][$model]??[];
+			$hasError=$hasError || \count($updatedFields)>0;
 			foreach ($updatedFields as $updatedField){
 				$this->generator->modifyField($updatedField['table'],$updatedField['name'],$updatedField['attributes']);
 			}
 			$missingPks=$checker->checkPrimaryKeys($model);
 			if(\count($missingPks)>0){
+				$hasError=true;
 				$pks=$missingPks['primaryKeys'];
 				$tablereversor->addPrimaryKeys($this->generator,$pks);
 			}
 			$missingFks=$checker->checkManyToOne($model);
 			if(\count($missingFks)>0){
+				$hasError=true;
 				foreach ($missingFks as $fk){
 					$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
 				}
 			}
+
+			$missingFks=$checker->checkManyToMany($model);
+			if(\count($missingFks)>0){
+				$hasError=true;
+				foreach ($missingFks as $fk){
+					$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
+				}
+			}
+		}
+
+		if($hasError){
+			$this->generator->selectDatabase($dbName);
 		}
 	}
 

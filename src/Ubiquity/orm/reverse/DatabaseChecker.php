@@ -32,6 +32,8 @@ class DatabaseChecker {
 
 	private array $nonExistingTables;
 
+	private array $checkResults;
+
 	public function __construct(string $dbOffset = 'default') {
 		$this->dbOffset = $dbOffset;
 		$this->models = CacheManager::getModels(Startup::$config, true, $this->dbOffset);
@@ -55,10 +57,10 @@ class DatabaseChecker {
 			$existingTables = $this->db->getTablesName();
 		}
 		$tables = Reflexion::getAllJoinTables($this->models);
-		foreach ($this->metadatas as $metas) {
+		foreach ($this->metadatas as $model=>$metas) {
 			$tablename=$metas['#tableName'];
 			if(\array_search($tablename,$existingTables)===false && \array_search($tablename,$tables)===false ) {
-				$tables[] = $tablename;
+				$tables[$model] = $tablename;
 			}
 		}
 		return \array_diff($tables, $existingTables);
@@ -91,16 +93,47 @@ class DatabaseChecker {
 				$result['updatedFields'][$tableName] = $updatedFields;
 			}
 			$manyToOneUpdateds = $this->checkManyToOne($model);
-			if (\count($updatedFields) > 0) {
+			if (\count($manyToOneUpdateds) > 0) {
 				$result['manyToOne'][$tableName] = $manyToOneUpdateds;
 			}
 			$manyToManyUpdateds = $this->checkManyToMany($model);
-			if (\count($updatedFields) > 0) {
+			if (\count($manyToManyUpdateds) > 0) {
 				$result['manyToMany'][$tableName] = $manyToManyUpdateds;
 			}
 		}
+		return $this->checkResults=$result;
+	}
 
-		return $result;
+	public function hasErrors(): bool {
+		if(\is_array($this->checkResults)){
+			$ckR=$this->checkResults;
+			return ($ckR['database']??false) || ($ckR['nonExistingTables']??false) || ($ckR['updatedFields']??false) || ($ckR['pks']??false) || ($ckR['manyToOne']??false) || ($ckR['manyToMany']??false);
+		}
+		return false;
+	}
+
+	public function getResultDatabaseNotExist():bool{
+		return $this->checkResults['database']??false;
+	}
+
+	public function getResultNonExistingTables():array{
+		return $this->checkResults['nonExistingTables']??[];
+	}
+
+	public function getResultUpdatedFields():array{
+		return $this->checkResults['updatedFields']??[];
+	}
+	
+	public function getResultPrimaryKeys():array{
+		return $this->checkResults['pks']??[];
+	}
+
+	public function getResultManyToOne():array{
+		return $this->checkResults['manyToOne']??[];
+	}
+
+	public function getResultManyToMany():array{
+		return $this->checkResults['manyToMany']??[];
 	}
 
 	public function getUpdatedFields(string $model): array {
@@ -134,6 +167,14 @@ class DatabaseChecker {
 		}
 		return $result;
 	}
+	
+	public function concatArrayKeyValue(array $array,callable $callable,string $sep=','){
+		$results=[];
+		foreach ($array as $value){
+			$results[]=$callable($value);
+		}
+		return \implode($sep,$results);
+	}
 
 	public function checkPrimaryKeys(string $model): array {
 		$metadatas = $this->metadatas[$model];
@@ -147,7 +188,7 @@ class DatabaseChecker {
 			if (\is_array($pks)) {
 				foreach ($pks as $pk) {
 					if (\array_search($pk, $originalPks) === false) {
-						return ['table'=>$tableName,'primaryKeys'=>$pks];
+						return ['table'=>$tableName,'primaryKeys'=>$pks,'model'=>$model];
 					}
 				}
 			}
