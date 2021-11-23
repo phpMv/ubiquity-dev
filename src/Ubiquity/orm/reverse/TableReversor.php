@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\orm\reverse;
 
+use Ubiquity\db\utils\DbTypes;
 use Ubiquity\orm\OrmUtils;
 use Ubiquity\db\reverse\DbGenerator;
 
@@ -73,7 +74,7 @@ class TableReversor {
 			foreach ($manyToManys as $member => $manyToMany) {
 				if (isset($this->metas['#joinTable'][$member])) {
 					$annotJoinTable = $this->metas['#joinTable'][$member];
-					$generator->addManyToMany($annotJoinTable['name'], $manyToMany['targetEntity']);
+					$generator->addManyToMany($annotJoinTable, $manyToMany['targetEntity']);
 				}
 			}
 		}
@@ -113,7 +114,7 @@ class TableReversor {
 		}
 		return [
 			'name' => $field,
-			'type' => $fieldTypes[$field],
+			'type' => $fieldTypes[$field]??DbTypes::DEFAULT_TYPE,
 			'extra' => $nullable
 		];
 	}

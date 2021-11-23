@@ -226,37 +226,40 @@ class DbGenerator {
 		return $this->sqlScript;
 	}
 
-	public function addManyToMany($jointable, $targetEntity) {
+	public function addManyToMany($jointableInfos, $targetEntity) {
+		$jointable=$jointableInfos['name'];
 		if (! isset($this->manyToManys[$jointable])) {
 			$this->manyToManys[$jointable] = [];
 		}
-		$this->manyToManys[$jointable][] = $targetEntity;
+		$this->manyToManys[$jointable][] = ['targetEntity'=>$targetEntity,'jointableInfos'=>$jointableInfos];
 	}
 
 	public function generateManyToManys() {
-		foreach ($this->manyToManys as $joinTable => $targetEntities) {
+		foreach ($this->manyToManys as $joinTable => $infos) {
 			if ($this->hasToCreateTable($joinTable)) {
-				$this->generateManyToMany($joinTable, $targetEntities);
+				$this->generateManyToMany($joinTable,$infos);
 			}
 		}
 	}
 
 	public function hasToCreateTable(string $table) {
 		if (\is_array($this->tablesToCreate)) {
-			return array_search($table, $this->tablesToCreate) !== false;
+			return \array_search($table, $this->tablesToCreate) !== false;
 		}
-		return true;
+		return false;
 	}
 
-	protected function generateManyToMany($joinTable, $targetEntities) {
+	protected function generateManyToMany($joinTable, $infos) {
 		$fields = [];
 		$fieldTypes = [];
 		$manyToOnes = [];
 		$invertedJoinColumns = [];
-		foreach ($targetEntities as $targetEntity) {
+		foreach ($infos as $info) {
+			$targetEntity=$info['targetEntity'];
+			$joinTableInfos=$info['jointableInfos'];
 			$pk = OrmUtils::getFirstKey($targetEntity);
 			$shortClassName = ClassUtils::getClassSimpleName($targetEntity);
-			$fieldName = $pk . \ucfirst($shortClassName);
+			$fieldName = $joinTableInfos['inverseJoinColumns']['name']??($pk . \ucfirst($shortClassName));
 			$fields[] = $fieldName;
 			$type = OrmUtils::getFieldType($targetEntity, $pk);
 			$fieldTypes[$fieldName] = $type;

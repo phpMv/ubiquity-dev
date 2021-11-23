@@ -202,13 +202,15 @@ class DatabaseChecker {
 		$joinColumns = $metadatas['#joinColumn'] ?? [];
 		$table = $metadatas['#tableName'];
 		$result = [];
-		foreach ($manyToOnes as $manyToOneMember) {
-			$joinColumn = $joinColumns[$manyToOneMember];
-			$fkClass = $joinColumn['className'];
-			$fkField = $joinColumn['name'];
-			$fkTable = $this->metadatas[$fkClass]['#tableName'];
-			$fkId = $this->metadatas[$fkClass]['#primaryKeys'][0] ?? 'id';
-			$result = \array_merge($result, $this->checkFk($table, $fkField, $fkTable, $fkId));
+		if($this->tableExists($table)) {
+			foreach ($manyToOnes as $manyToOneMember) {
+				$joinColumn = $joinColumns[$manyToOneMember];
+				$fkClass = $joinColumn['className'];
+				$fkField = $joinColumn['name'];
+				$fkTable = $this->metadatas[$fkClass]['#tableName'];
+				$fkId = $this->metadatas[$fkClass]['#primaryKeys'][0] ?? 'id';
+				$result = \array_merge($result, $this->checkFk($table, $fkField, $fkTable, $fkId));
+			}
 		}
 		return $result;
 	}
@@ -241,17 +243,28 @@ class DatabaseChecker {
 		$metadatas = $this->metadatas[$model];
 		$manyToManys = $metadatas['#manyToMany'] ?? [];
 		$joinTables = $metadatas['#joinTable'] ?? [];
+		$table=$metadatas['#tableName'];
 		$result = [];
-		foreach ($manyToManys as $member => $manyToManyInfos) {
-			$joinTableInfos = $joinTables[$member];
-			$joinTableName = $joinTableInfos['name'];
-			$targetEntity = $manyToManyInfos['targetEntity'];
-			$fkTable = $this->metadatas[$targetEntity]['#tableName'];
-			$fkId = $this->metadatas[$targetEntity]['#primaryKeys'][0] ?? 'id';
-			$fkId = $joinTableInfos['inverseJoinColumns']['referencedColumnName'] ?? $fkId;
-			$fkField = $joinTableInfos['inverseJoinColumns']['name'] ?? ($fkId . \ucfirst($fkTable));
-			$result = \array_merge($result, $this->checkFk($joinTableName, $fkField, $fkTable, $fkId));
+		if($this->tableExists($table)) {
+			foreach ($manyToManys as $member => $manyToManyInfos) {
+				$joinTableInfos = $joinTables[$member];
+				$joinTableName = $joinTableInfos['name'];
+				$targetEntity = $manyToManyInfos['targetEntity'];
+				$fkTable = $this->metadatas[$targetEntity]['#tableName'];
+				$fkId = $this->metadatas[$targetEntity]['#primaryKeys'][0] ?? 'id';
+				$fkId = $joinTableInfos['inverseJoinColumns']['referencedColumnName'] ?? $fkId;
+				$fkField = $joinTableInfos['inverseJoinColumns']['name'] ?? ($fkId . \ucfirst($fkTable));
+				$result = \array_merge($result, $this->checkFk($joinTableName, $fkField, $fkTable, $fkId));
+			}
 		}
 		return $result;
 	}
+
+	/**
+	 * @return Database
+	 */
+	public function getDb(): Database {
+		return $this->db;
+	}
+	
 }

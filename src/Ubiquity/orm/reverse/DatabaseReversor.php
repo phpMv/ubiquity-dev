@@ -4,6 +4,7 @@ namespace Ubiquity\orm\reverse;
 use Ubiquity\db\reverse\DbGenerator;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\db\utils\DbTypes;
 use Ubiquity\orm\DAO;
 use Ubiquity\db\Database;
 use Ubiquity\exceptions\UbiquityException;
@@ -36,6 +37,7 @@ class DatabaseReversor {
 	public function createDatabase(string $name, bool $createDb = true): void {
 		if ($createDb) {
 			$this->generator->createDatabase($name);
+			$this->generator->selectDatabase($name);
 		}
 		$config = Startup::getConfig();
 		$models = $this->models ?? CacheManager::getModels($config, true, $this->database);
@@ -62,22 +64,21 @@ class DatabaseReversor {
 
 	public function migrate(): void {
 		$checker = new DatabaseChecker($this->database);
-		$hasError=false;
 		$dbName=$this->getDbName();
 		if (! $checker->checkDatabase()) {
 			$this->createDatabase($dbName);
-			$hasError=true;
 			return;
 		}
 		$tablesToCreate = $checker->getNonExistingTables();
 		if (\count($tablesToCreate) > 0) {
 			$this->generator->setTablesToCreate($tablesToCreate);
 			$this->createDatabase($dbName, false);
-			$hasError=true;
 		}
 		//TODO check each part
 		$config = Startup::getConfig();
 		$models = $this->models ?? CacheManager::getModels($config, true, $this->database);
+		$newMissingPks=[];
+
 		foreach ($models as $model){
 			$tablereversor=new TableReversor($model);
 			$tablereversor->initFromClass();
@@ -94,13 +95,11 @@ class DatabaseReversor {
 			}
 			$missingPks=$checker->checkPrimaryKeys($model);
 			if(\count($missingPks)>0){
-				$hasError=true;
 				$pks=$missingPks['primaryKeys'];
 				$tablereversor->addPrimaryKeys($this->generator,$pks);
 			}
 			$missingFks=$checker->checkManyToOne($model);
 			if(\count($missingFks)>0){
-				$hasError=true;
 				foreach ($missingFks as $fk){
 					$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
 				}
@@ -108,15 +107,27 @@ class DatabaseReversor {
 
 			$missingFks=$checker->checkManyToMany($model);
 			if(\count($missingFks)>0){
-				$hasError=true;
 				foreach ($missingFks as $fk){
-					$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
+					if(!$this->generator->hasToCreateTable($fk['table'])) {
+						$this->checkManyToManyFields($checker, $fk['table'], $fk['column'],$newMissingPks);
+						$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
+					}
 				}
 			}
 		}
+		foreach ($newMissingPks as $table=>$pks){
+			$this->generator->addKey($table,$pks);
+		}
+	}
 
-		if($hasError){
-			$this->generator->selectDatabase($dbName);
+	private function checkManyToManyFields(DatabaseChecker $checker,string $table,string $field,&$newMissingPks): void {
+		$originalFieldInfos = $checker->getDb()->getFieldsInfos($table);
+		$pks=$checker->getDb()->getPrimaryKeys($table);
+		if (!isset($originalFieldInfos[$field])) {
+			$this->generator->addField($table, $field, ['type' => 'int']);
+		}
+		if(\array_search($field,$pks)===false){
+			$newMissingPks[$table][]=$field;
 		}
 	}
 
