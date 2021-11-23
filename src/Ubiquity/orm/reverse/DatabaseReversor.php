@@ -15,7 +15,7 @@ use Ubiquity\exceptions\UbiquityException;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.3
+ * @version 1.0.4
  * @package Ubiquity.dev
  *
  */
