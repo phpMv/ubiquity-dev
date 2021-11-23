@@ -89,7 +89,6 @@ class DatabaseReversor {
 				$this->generator->addField($missingField['table'],$missingField['name'],$missingField['attributes']);
 			}
 			$updatedFields=$uFields['updated'][$model]??[];
-			$hasError=$hasError || \count($updatedFields)>0;
 			foreach ($updatedFields as $updatedField){
 				$this->generator->modifyField($updatedField['table'],$updatedField['name'],$updatedField['attributes']);
 			}
