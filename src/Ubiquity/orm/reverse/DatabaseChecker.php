@@ -267,4 +267,67 @@ class DatabaseChecker {
 		return $this->db;
 	}
 	
+	public function displayAll(callable $displayCallable){
+		$dbResults=$this->checkResults;
+		
+		if(isset($dbResults['database'])){
+			$displayCallable("database", "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
+		}
+		if(\count($notExistingTables=$dbResults['nonExistingTables'])>0){
+			foreach ($notExistingTables as $model=>$table) {
+				if(\is_string($model)) {
+					$displayCallable("table", "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");
+				}else{
+					$displayCallable("table", "The table <b>" . $table . "</b> does not exist.");
+				}
+			}
+		}
+		if(\count($uFields=$this->getResultUpdatedFields())>0){
+			foreach ($uFields as $table=>$updatedFieldInfos){
+				if(isset($updatedFieldInfos['missing'])) {
+					$model = \array_key_first($updatedFieldInfos['missing']);
+					if (\count($fInfos = $updatedFieldInfos['missing'][$model] ?? []) > 0) {
+						$names = $this->concatArrayKeyValue($fInfos,function($value){
+							return $value['name'];
+						});
+						$displayCallable('warning circle', "Missing fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+					}
+				}
+				if(isset($updatedFieldInfos['updated'])) {
+					$model = \array_key_first($updatedFieldInfos['updated']);
+					if (\count($fInfos = $updatedFieldInfos['updated'][$model] ?? []) > 0) {
+						$names = $this->concatArrayKeyValue($fInfos,function($value){
+							return $value['name'];
+						});
+						$displayCallable('warning circle', "Updated fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+					}
+				}
+			}
+		}
+		if(\count($pks=$this->getResultPrimaryKeys())>0){
+			foreach ($pks as $table=>$pksFieldInfos){
+				$model=$pksFieldInfos['model'];
+				$names=implode(',',$pksFieldInfos['primaryKeys']);
+				$displayCallable('warning circle', "Missing primary keys in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+			}
+		}
+		if(\count($manyToOnes=$this->getResultManyToOne())>0){
+			foreach ($manyToOnes as $table=>$manyToOneFieldInfos){
+				$names = $this->concatArrayKeyValue($manyToOneFieldInfos,function($value){
+					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
+				});
+				$displayCallable('warning circle', "Missing foreign keys in table <b>`$table`</b> : <b>($names)</b>");
+			}
+		}
+
+		if(\count($manyToManys=$this->getResultManyToMany())>0){
+			foreach ($manyToManys as $table=>$manyToManyFieldInfos){
+				$names = $this->concatArrayKeyValue($manyToManyFieldInfos,function($value){
+					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
+				});
+				$displayCallable('warning circle', "Missing foreign keys for manyToMany with table <b>`$table`</b> : <b>($names)</b>");
+			}
+		}
+	}
+	
 }
