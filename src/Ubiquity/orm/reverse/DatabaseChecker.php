@@ -271,14 +271,14 @@ class DatabaseChecker {
 		$dbResults=$this->checkResults;
 		
 		if(isset($dbResults['database'])){
-			$displayCallable("database", "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
+			$displayCallable('error','database', "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
 		}
 		if(\count($notExistingTables=$dbResults['nonExistingTables'])>0){
 			foreach ($notExistingTables as $model=>$table) {
 				if(\is_string($model)) {
-					$displayCallable("table", "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");
+					$displayCallable('warning','Missing table', "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");
 				}else{
-					$displayCallable("table", "The table <b>" . $table . "</b> does not exist.");
+					$displayCallable('warning','Missing table', "The table <b>" . $table . "</b> does not exist.");
 				}
 			}
 		}
@@ -290,7 +290,7 @@ class DatabaseChecker {
 						$names = $this->concatArrayKeyValue($fInfos,function($value){
 							return $value['name'];
 						});
-						$displayCallable('warning circle', "Missing fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+						$displayCallable('warning','Missing columns', "Missing fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
 					}
 				}
 				if(isset($updatedFieldInfos['updated'])) {
@@ -299,7 +299,7 @@ class DatabaseChecker {
 						$names = $this->concatArrayKeyValue($fInfos,function($value){
 							return $value['name'];
 						});
-						$displayCallable('warning circle', "Updated fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+						$displayCallable('warning','Updated columns', "Updated fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
 					}
 				}
 			}
@@ -308,7 +308,7 @@ class DatabaseChecker {
 			foreach ($pks as $table=>$pksFieldInfos){
 				$model=$pksFieldInfos['model'];
 				$names=implode(',',$pksFieldInfos['primaryKeys']);
-				$displayCallable('warning circle', "Missing primary keys in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+				$displayCallable('warning','Missing key', "Missing primary keys in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
 			}
 		}
 		if(\count($manyToOnes=$this->getResultManyToOne())>0){
@@ -316,7 +316,7 @@ class DatabaseChecker {
 				$names = $this->concatArrayKeyValue($manyToOneFieldInfos,function($value){
 					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
 				});
-				$displayCallable('warning circle', "Missing foreign keys in table <b>`$table`</b> : <b>($names)</b>");
+				$displayCallable('warning','Missing hashtag (manyToOne)', "Missing foreign keys in table <b>`$table`</b> : <b>($names)</b>");
 			}
 		}
 
@@ -325,7 +325,7 @@ class DatabaseChecker {
 				$names = $this->concatArrayKeyValue($manyToManyFieldInfos,function($value){
 					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
 				});
-				$displayCallable('warning circle', "Missing foreign keys for manyToMany with table <b>`$table`</b> : <b>($names)</b>");
+				$displayCallable('warning','Missing hashtag (manyToMany)', "Missing foreign keys for manyToMany with table <b>`$table`</b> : <b>($names)</b>");
 			}
 		}
 	}
