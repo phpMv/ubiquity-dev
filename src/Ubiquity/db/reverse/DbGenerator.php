@@ -63,7 +63,7 @@ class DbGenerator {
 		$this->foreignKeyMask = "ALTER TABLE %tableName% ADD CONSTRAINT %fkName% FOREIGN KEY (%fkFieldName%) REFERENCES %referencesTableName% (%referencesFieldName%) ON DELETE %onDelete% ON UPDATE %onUpdate%";
 		$this->alterTableAddKey = "ALTER TABLE %tableName% ADD %type% KEY (%pkFields%)";
 		$this->autoIncMask = "ALTER TABLE %tableName% MODIFY %field% AUTO_INCREMENT, AUTO_INCREMENT=%value%";
-		$this->modifiyFieldMask="ALTER TABLE %tableName% %operation% %field% %attributes%";
+		$this->modifiyFieldMask = "ALTER TABLE %tableName% %operation% %field% %attributes%";
 		$this->fieldTypes = DbTypes::TYPES;
 		$this->defaultType = DbTypes::DEFAULT_TYPE;
 	}
@@ -133,15 +133,15 @@ class DbGenerator {
 		], $this->autoIncMask);
 		return $this->addScript("before-constraints", $script);
 	}
-	
-	public function addField($tableName,$fieldName,$fieldAttributes){
-		$this->addOrUpdateField($tableName,$fieldName,$fieldAttributes,'ADD');
+
+	public function addField($tableName, $fieldName, $fieldAttributes) {
+		$this->addOrUpdateField($tableName, $fieldName, $fieldAttributes, 'ADD');
 	}
 
-	public function modifyField($tableName,$fieldName,$fieldAttributes){
-		$this->addOrUpdateField($tableName,$fieldName,$fieldAttributes,'MODIFY');
+	public function modifyField($tableName, $fieldName, $fieldAttributes) {
+		$this->addOrUpdateField($tableName, $fieldName, $fieldAttributes, 'MODIFY');
 	}
-	
+
 	protected function addScript($key, $script) {
 		if (! isset($this->sqlScript[$key])) {
 			$this->sqlScript[$key] = [];
@@ -150,13 +150,13 @@ class DbGenerator {
 		return $script;
 	}
 
-	protected function addOrUpdateField($tableName,$fieldName,$fieldAttributes,$operation='ADD'){
-		$fieldAttributes=$this->checkFieldAttributes($fieldAttributes,false);
+	protected function addOrUpdateField($tableName, $fieldName, $fieldAttributes, $operation = 'ADD') {
+		$fieldAttributes = $this->checkFieldAttributes($fieldAttributes, false);
 		$script = $this->replaceArrayMask([
 			'tableName' => $tableName,
 			'field' => $fieldName,
 			'attributes' => \implode(" ", $fieldAttributes),
-			'operation'=>$operation
+			'operation' => $operation
 		], $this->modifiyFieldMask);
 		return $this->addScript('body', $script);
 	}
@@ -227,17 +227,20 @@ class DbGenerator {
 	}
 
 	public function addManyToMany($jointableInfos, $targetEntity) {
-		$jointable=$jointableInfos['name'];
+		$jointable = $jointableInfos['name'];
 		if (! isset($this->manyToManys[$jointable])) {
 			$this->manyToManys[$jointable] = [];
 		}
-		$this->manyToManys[$jointable][] = ['targetEntity'=>$targetEntity,'jointableInfos'=>$jointableInfos];
+		$this->manyToManys[$jointable][] = [
+			'targetEntity' => $targetEntity,
+			'jointableInfos' => $jointableInfos
+		];
 	}
 
 	public function generateManyToManys() {
 		foreach ($this->manyToManys as $joinTable => $infos) {
 			if ($this->hasToCreateTable($joinTable)) {
-				$this->generateManyToMany($joinTable,$infos);
+				$this->generateManyToMany($joinTable, $infos);
 			}
 		}
 	}
@@ -255,11 +258,11 @@ class DbGenerator {
 		$manyToOnes = [];
 		$invertedJoinColumns = [];
 		foreach ($infos as $info) {
-			$targetEntity=$info['targetEntity'];
-			$joinTableInfos=$info['jointableInfos'];
+			$targetEntity = $info['targetEntity'];
+			$joinTableInfos = $info['jointableInfos'];
 			$pk = OrmUtils::getFirstKey($targetEntity);
 			$shortClassName = ClassUtils::getClassSimpleName($targetEntity);
-			$fieldName = $joinTableInfos['inverseJoinColumns']['name']??($pk . \ucfirst($shortClassName));
+			$fieldName = $joinTableInfos['inverseJoinColumns']['name'] ?? ($pk . \ucfirst($shortClassName));
 			$fields[] = $fieldName;
 			$type = OrmUtils::getFieldType($targetEntity, $pk);
 			$fieldTypes[$fieldName] = $type;
@@ -291,7 +294,7 @@ class DbGenerator {
 	}
 
 	public function getScript(): array {
-		$scripts = \array_merge($this->sqlScript['head']??[], $this->sqlScript['body']??[]);
+		$scripts = \array_merge($this->sqlScript['head'] ?? [], $this->sqlScript['body'] ?? []);
 		if (isset($this->sqlScript['before-constraints'])) {
 			$scripts = \array_merge($scripts, $this->sqlScript['before-constraints']);
 		}
@@ -303,7 +306,7 @@ class DbGenerator {
 
 	public function __toString() {
 		$scripts = $this->getScript();
-		if(\count($scripts)>0) {
+		if (\count($scripts) > 0) {
 			return \implode(";\n", $scripts) . ';';
 		}
 		return '';
