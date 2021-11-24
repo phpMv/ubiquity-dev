@@ -290,14 +290,22 @@ class DbGenerator {
 		$tableGenerator->generateSQL($this);
 	}
 
+	public function getScript(): array {
+		$scripts = \array_merge($this->sqlScript['head']??[], $this->sqlScript['body']??[]);
+		if (isset($this->sqlScript['before-constraints'])) {
+			$scripts = \array_merge($scripts, $this->sqlScript['before-constraints']);
+		}
+		if (isset($this->sqlScript['constraints'])) {
+			$scripts = \array_merge($scripts, $this->sqlScript['constraints']);
+		}
+		return $scripts;
+	}
+
 	public function __toString() {
-		$scripts = \array_merge($this->sqlScript["head"]??[], $this->sqlScript["body"]??[]);
-		if (isset($this->sqlScript["before-constraints"])) {
-			$scripts = \array_merge($scripts, $this->sqlScript["before-constraints"]);
+		$scripts = $this->getScript();
+		if(\count($scripts)>0) {
+			return \implode(";\n", $scripts) . ';';
 		}
-		if (isset($this->sqlScript["constraints"])) {
-			$scripts = \array_merge($scripts, $this->sqlScript["constraints"]);
-		}
-		return \implode(";\n", $scripts) . ';';
+		return '';
 	}
 }
