@@ -35,6 +35,7 @@ class DatabaseReversor {
 	}
 
 	public function createDatabase(string $name, bool $createDb = true): void {
+		$this->generator->setMigrationMode(true);
 		if ($createDb) {
 			$this->generator->createDatabase($name);
 			$this->generator->selectDatabase($name);
@@ -63,6 +64,7 @@ class DatabaseReversor {
 	}
 
 	public function migrate(): void {
+		$this->generator->setMigrationMode(true);
 		$checker = new DatabaseChecker($this->database);
 		$dbName=$this->getDbName();
 		if (! $checker->checkDatabase()) {
@@ -132,6 +134,10 @@ class DatabaseReversor {
 
 	public function __toString() {
 		return $this->generator->__toString();
+	}
+	
+	public function getScript(){
+		return $this->generator->getScript();
 	}
 
 	public function setModels($models) {

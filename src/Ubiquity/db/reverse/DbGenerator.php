@@ -49,6 +49,8 @@ class DbGenerator {
 
 	protected $tablesToCreate;
 
+	protected $migrationMode;
+
 	public function isInt($fieldType) {
 		return DbTypes::isInt($fieldType);
 	}
@@ -249,7 +251,7 @@ class DbGenerator {
 		if (\is_array($this->tablesToCreate)) {
 			return \array_search($table, $this->tablesToCreate) !== false;
 		}
-		return false;
+		return $this->migrationMode;
 	}
 
 	protected function generateManyToMany($joinTable, $infos) {
@@ -310,5 +312,13 @@ class DbGenerator {
 			return \implode(";\n", $scripts) . ';';
 		}
 		return '';
+	}
+
+	/**
+	 *
+	 * @param mixed $migrationMode
+	 */
+	public function setMigrationMode($migrationMode): void {
+		$this->migrationMode = $migrationMode;
 	}
 }
