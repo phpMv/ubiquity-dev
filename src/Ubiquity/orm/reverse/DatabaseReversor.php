@@ -1,10 +1,12 @@
 <?php
 namespace Ubiquity\orm\reverse;
 
+use Cassandra\Exception\ConfigurationException;
 use Ubiquity\db\reverse\DbGenerator;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\db\utils\DbTypes;
+use Ubiquity\exceptions\DBException;
 use Ubiquity\orm\DAO;
 use Ubiquity\db\Database;
 use Ubiquity\exceptions\UbiquityException;
@@ -32,6 +34,20 @@ class DatabaseReversor {
 	public function __construct(DbGenerator $generator, $databaseOffset = 'default') {
 		$this->generator = $generator;
 		$this->database = $databaseOffset;
+		$config=Startup::$config;
+		$this->generator->setDatabaseWrapper($this->getWrapperInstance($config,$databaseOffset));
+	}
+
+	protected function getWrapperInstance(&$config,$databaseOffset='default'){
+		$dbOffsetConfig=DAO::getDbOffset($config,$databaseOffset);
+		if(isset($dbOffsetConfig['wrapper'])){
+			$wrapperClass=$dbOffsetConfig['wrapper'];
+			if(\class_exists($wrapperClass)){
+				return new $wrapperClass($dbOffsetConfig['type']??null);
+			}
+			throw new DBException("Wrapper class $wrapperClass does not exist!");
+		}
+		throw new ConfigurationException("Wrapper class is not set for database at offset $databaseOffset!");
 	}
 
 	public function createDatabase(string $name, bool $createDb = true): void {

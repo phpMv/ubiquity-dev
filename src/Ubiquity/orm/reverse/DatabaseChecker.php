@@ -274,6 +274,7 @@ class DatabaseChecker {
 			$displayCallable('error','database', "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
 		}
 		if(\count($notExistingTables=$dbResults['nonExistingTables'])>0){
+			$notExistingTables=\array_unique($notExistingTables);
 			foreach ($notExistingTables as $model=>$table) {
 				if(\is_string($model)) {
 					$displayCallable('warning','Missing table', "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");

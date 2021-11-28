@@ -89,8 +89,8 @@ class TableReversor {
 	protected function generatePks(DbGenerator $generator, $primaryKeys, $table, $fieldTypes, $nullables) {
 		if(\is_array($primaryKeys)) {
 			$generator->addKey($table, $primaryKeys);
-			if (\count($primaryKeys) === 1 && $generator->isInt($fieldTypes[\current($primaryKeys)])) {
-				$generator->addAutoInc($table, $this->getFieldAttributes($generator, \current($primaryKeys), $nullables, $fieldTypes, true));
+			if (\count($primaryKeys) === 1 && $generator->isInt($fieldTypes[$fpk=\current($primaryKeys)])) {
+				$generator->addAutoInc($table, $fpk,$this->getFieldAttributes($generator, $fpk, $nullables, $fieldTypes, true));
 			}
 		}
 	}
