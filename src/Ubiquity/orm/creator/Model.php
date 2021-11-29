@@ -365,4 +365,12 @@ class Model {
 	public function setSimpleMembers($members) {
 		$this->simpleMembers = $members;
 	}
+
+	/**
+	 * @param mixed $table
+	 */
+	public function setTable($table): void {
+		$this->table = $table;
+	}
+	
 }
