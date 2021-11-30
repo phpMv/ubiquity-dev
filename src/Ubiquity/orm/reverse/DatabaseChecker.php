@@ -26,13 +26,13 @@ class DatabaseChecker {
 
 	private Database $db;
 
-	private array $models;
+	private ?array $models = null;
 
-	private array $metadatas;
+	private ?array $metadatas = null;
 
-	private array $nonExistingTables;
+	private ?array $nonExistingTables = null;
 
-	private array $checkResults;
+	private ?array $checkResults = null;
 
 	public function __construct(string $dbOffset = 'default') {
 		$this->dbOffset = $dbOffset;
@@ -45,9 +45,9 @@ class DatabaseChecker {
 	public function checkDatabase(): bool {
 		try {
 			$this->db = DAO::getDatabase($this->dbOffset);
-			return $this->databaseExist=isset($this->db) && $this->db->isConnected();
-		}catch (DAOException $e){
-			return $this->databaseExist=false;
+			return $this->databaseExist = isset($this->db) && $this->db->isConnected();
+		} catch (DAOException $e) {
+			return $this->databaseExist = false;
 		}
 	}
 
@@ -57,9 +57,9 @@ class DatabaseChecker {
 			$existingTables = $this->db->getTablesName();
 		}
 		$tables = Reflexion::getAllJoinTables($this->models);
-		foreach ($this->metadatas as $model=>$metas) {
-			$tablename=$metas['#tableName'];
-			if(\array_search($tablename,$existingTables)===false && \array_search($tablename,$tables)===false ) {
+		foreach ($this->metadatas as $model => $metas) {
+			$tablename = $metas['#tableName'];
+			if (\array_search($tablename, $existingTables) === false && \array_search($tablename, $tables) === false) {
 				$tables[$model] = $tablename;
 			}
 		}
@@ -71,7 +71,7 @@ class DatabaseChecker {
 	}
 
 	protected function tableExists(string $table): bool {
-		return \array_search($table,$this->_getNonExistingTables())===false;
+		return \array_search($table, $this->_getNonExistingTables()) === false;
 	}
 
 	public function checkAll(): array {
@@ -101,46 +101,46 @@ class DatabaseChecker {
 				$result['manyToMany'][$tableName] = $manyToManyUpdateds;
 			}
 		}
-		return $this->checkResults=$result;
+		return $this->checkResults = $result;
 	}
 
 	public function hasErrors(): bool {
-		if(\is_array($this->checkResults)){
-			$ckR=$this->checkResults;
-			return ($ckR['database']??false) || ($ckR['nonExistingTables']??false) || ($ckR['updatedFields']??false) || ($ckR['pks']??false) || ($ckR['manyToOne']??false) || ($ckR['manyToMany']??false);
+		if (\is_array($this->checkResults)) {
+			$ckR = $this->checkResults;
+			return ($ckR['database'] ?? false) || ($ckR['nonExistingTables'] ?? false) || ($ckR['updatedFields'] ?? false) || ($ckR['pks'] ?? false) || ($ckR['manyToOne'] ?? false) || ($ckR['manyToMany'] ?? false);
 		}
 		return false;
 	}
 
-	public function getResultDatabaseNotExist():bool{
-		return $this->checkResults['database']??false;
+	public function getResultDatabaseNotExist(): bool {
+		return $this->checkResults['database'] ?? false;
 	}
 
-	public function getResultNonExistingTables():array{
-		return $this->checkResults['nonExistingTables']??[];
+	public function getResultNonExistingTables(): array {
+		return $this->checkResults['nonExistingTables'] ?? [];
 	}
 
-	public function getResultUpdatedFields():array{
-		return $this->checkResults['updatedFields']??[];
-	}
-	
-	public function getResultPrimaryKeys():array{
-		return $this->checkResults['pks']??[];
+	public function getResultUpdatedFields(): array {
+		return $this->checkResults['updatedFields'] ?? [];
 	}
 
-	public function getResultManyToOne():array{
-		return $this->checkResults['manyToOne']??[];
+	public function getResultPrimaryKeys(): array {
+		return $this->checkResults['pks'] ?? [];
 	}
 
-	public function getResultManyToMany():array{
-		return $this->checkResults['manyToMany']??[];
+	public function getResultManyToOne(): array {
+		return $this->checkResults['manyToOne'] ?? [];
+	}
+
+	public function getResultManyToMany(): array {
+		return $this->checkResults['manyToMany'] ?? [];
 	}
 
 	public function getUpdatedFields(string $model): array {
 		$result = [];
 		$metadatas = $this->metadatas[$model];
-		$tableName=$metadatas['#tableName'];
-		if($this->tableExists($tableName)) {
+		$tableName = $metadatas['#tableName'];
+		if ($this->tableExists($tableName)) {
 			$fields = $metadatas['#fieldNames'];
 			$fieldTypes = $metadatas['#fieldTypes'];
 			$nullables = $metadatas['#nullable'];
@@ -155,11 +155,14 @@ class DatabaseChecker {
 					$fieldInfos = [
 						'table' => $tableName,
 						'name' => $field,
-						'attributes' => ['type' => $fieldTypes[$member], 'extra' => $nullable ? '' : 'NOT NULL']
+						'attributes' => [
+							'type' => $fieldTypes[$member],
+							'extra' => $nullable ? '' : 'NOT NULL'
+						]
 					];
-					if (!isset($originalFieldInfos[$field])) {
+					if (! isset($originalFieldInfos[$field])) {
 						$result['missing'][$model][] = $fieldInfos;
-					} elseif ($fieldTypes[$member] !== 'mixed' && ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type']) || ($originalFieldInfos[$field]['Nullable'] !== 'NO' && !$nullable)) {
+					} elseif ($fieldTypes[$member] !== 'mixed' && ($fieldTypes[$member] !== $originalFieldInfos[$field]['Type']) || ($originalFieldInfos[$field]['Nullable'] !== 'NO' && ! $nullable)) {
 						$result['updated'][$model][] = $fieldInfos;
 					}
 				}
@@ -167,19 +170,19 @@ class DatabaseChecker {
 		}
 		return $result;
 	}
-	
-	public function concatArrayKeyValue(array $array,callable $callable,string $sep=','){
-		$results=[];
-		foreach ($array as $value){
-			$results[]=$callable($value);
+
+	public function concatArrayKeyValue(array $array, callable $callable, string $sep = ',') {
+		$results = [];
+		foreach ($array as $value) {
+			$results[] = $callable($value);
 		}
-		return \implode($sep,$results);
+		return \implode($sep, $results);
 	}
 
 	public function checkPrimaryKeys(string $model): array {
 		$metadatas = $this->metadatas[$model];
 		$tableName = $metadatas['#tableName'];
-		if($this->tableExists($tableName)) {
+		if ($this->tableExists($tableName)) {
 			$pks = $metadatas['#primaryKeys'];
 			$originalPks = [];
 			if ($this->databaseExist) {
@@ -188,7 +191,11 @@ class DatabaseChecker {
 			if (\is_array($pks)) {
 				foreach ($pks as $pk) {
 					if (\array_search($pk, $originalPks) === false) {
-						return ['table'=>$tableName,'primaryKeys'=>$pks,'model'=>$model];
+						return [
+							'table' => $tableName,
+							'primaryKeys' => $pks,
+							'model' => $model
+						];
 					}
 				}
 			}
@@ -202,7 +209,7 @@ class DatabaseChecker {
 		$joinColumns = $metadatas['#joinColumn'] ?? [];
 		$table = $metadatas['#tableName'];
 		$result = [];
-		if($this->tableExists($table)) {
+		if ($this->tableExists($table)) {
 			foreach ($manyToOnes as $manyToOneMember) {
 				$joinColumn = $joinColumns[$manyToOneMember];
 				$fkClass = $joinColumn['className'];
@@ -243,9 +250,9 @@ class DatabaseChecker {
 		$metadatas = $this->metadatas[$model];
 		$manyToManys = $metadatas['#manyToMany'] ?? [];
 		$joinTables = $metadatas['#joinTable'] ?? [];
-		$table=$metadatas['#tableName'];
+		$table = $metadatas['#tableName'];
 		$result = [];
-		if($this->tableExists($table)) {
+		if ($this->tableExists($table)) {
 			foreach ($manyToManys as $member => $manyToManyInfos) {
 				$joinTableInfos = $joinTables[$member];
 				$joinTableName = $joinTableInfos['name'];
@@ -261,74 +268,74 @@ class DatabaseChecker {
 	}
 
 	/**
+	 *
 	 * @return Database
 	 */
 	public function getDb(): Database {
 		return $this->db;
 	}
-	
-	public function displayAll(callable $displayCallable){
-		$dbResults=$this->checkResults;
-		
-		if(isset($dbResults['database'])){
-			$displayCallable('error','database', "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
+
+	public function displayAll(callable $displayCallable) {
+		$dbResults = $this->checkResults;
+
+		if (isset($dbResults['database'])) {
+			$displayCallable('error', 'database', "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
 		}
-		if(\count($notExistingTables=$dbResults['nonExistingTables'])>0){
-			$notExistingTables=\array_unique($notExistingTables);
-			foreach ($notExistingTables as $model=>$table) {
-				if(\is_string($model)) {
-					$displayCallable('warning','Missing table', "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");
-				}else{
-					$displayCallable('warning','Missing table', "The table <b>" . $table . "</b> does not exist.");
+		if (\count($notExistingTables = $dbResults['nonExistingTables']) > 0) {
+			$notExistingTables = \array_unique($notExistingTables);
+			foreach ($notExistingTables as $model => $table) {
+				if (\is_string($model)) {
+					$displayCallable('warning', 'Missing table', "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");
+				} else {
+					$displayCallable('warning', 'Missing table', "The table <b>" . $table . "</b> does not exist.");
 				}
 			}
 		}
-		if(\count($uFields=$this->getResultUpdatedFields())>0){
-			foreach ($uFields as $table=>$updatedFieldInfos){
-				if(isset($updatedFieldInfos['missing'])) {
+		if (\count($uFields = $this->getResultUpdatedFields()) > 0) {
+			foreach ($uFields as $table => $updatedFieldInfos) {
+				if (isset($updatedFieldInfos['missing'])) {
 					$model = \array_key_first($updatedFieldInfos['missing']);
 					if (\count($fInfos = $updatedFieldInfos['missing'][$model] ?? []) > 0) {
-						$names = $this->concatArrayKeyValue($fInfos,function($value){
+						$names = $this->concatArrayKeyValue($fInfos, function ($value) {
 							return $value['name'];
 						});
-						$displayCallable('warning','Missing columns', "Missing fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+						$displayCallable('warning', 'Missing columns', "Missing fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
 					}
 				}
-				if(isset($updatedFieldInfos['updated'])) {
+				if (isset($updatedFieldInfos['updated'])) {
 					$model = \array_key_first($updatedFieldInfos['updated']);
 					if (\count($fInfos = $updatedFieldInfos['updated'][$model] ?? []) > 0) {
-						$names = $this->concatArrayKeyValue($fInfos,function($value){
+						$names = $this->concatArrayKeyValue($fInfos, function ($value) {
 							return $value['name'];
 						});
-						$displayCallable('warning','Updated columns', "Updated fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+						$displayCallable('warning', 'Updated columns', "Updated fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
 					}
 				}
 			}
 		}
-		if(\count($pks=$this->getResultPrimaryKeys())>0){
-			foreach ($pks as $table=>$pksFieldInfos){
-				$model=$pksFieldInfos['model'];
-				$names=implode(',',$pksFieldInfos['primaryKeys']);
-				$displayCallable('warning','Missing key', "Missing primary keys in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+		if (\count($pks = $this->getResultPrimaryKeys()) > 0) {
+			foreach ($pks as $table => $pksFieldInfos) {
+				$model = $pksFieldInfos['model'];
+				$names = implode(',', $pksFieldInfos['primaryKeys']);
+				$displayCallable('warning', 'Missing key', "Missing primary keys in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
 			}
 		}
-		if(\count($manyToOnes=$this->getResultManyToOne())>0){
-			foreach ($manyToOnes as $table=>$manyToOneFieldInfos){
-				$names = $this->concatArrayKeyValue($manyToOneFieldInfos,function($value){
-					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
+		if (\count($manyToOnes = $this->getResultManyToOne()) > 0) {
+			foreach ($manyToOnes as $table => $manyToOneFieldInfos) {
+				$names = $this->concatArrayKeyValue($manyToOneFieldInfos, function ($value) {
+					return $value['table'] . '.' . $value['column'] . ' => ' . $value['fkTable'] . '.' . $value['fkId'];
 				});
-				$displayCallable('warning','Missing hashtag (manyToOne)', "Missing foreign keys in table <b>`$table`</b> : <b>($names)</b>");
+				$displayCallable('warning', 'Missing hashtag (manyToOne)', "Missing foreign keys in table <b>`$table`</b> : <b>($names)</b>");
 			}
 		}
 
-		if(\count($manyToManys=$this->getResultManyToMany())>0){
-			foreach ($manyToManys as $table=>$manyToManyFieldInfos){
-				$names = $this->concatArrayKeyValue($manyToManyFieldInfos,function($value){
-					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
+		if (\count($manyToManys = $this->getResultManyToMany()) > 0) {
+			foreach ($manyToManys as $table => $manyToManyFieldInfos) {
+				$names = $this->concatArrayKeyValue($manyToManyFieldInfos, function ($value) {
+					return $value['table'] . '.' . $value['column'] . ' => ' . $value['fkTable'] . '.' . $value['fkId'];
 				});
-				$displayCallable('warning','Missing hashtag (manyToMany)', "Missing foreign keys for manyToMany with table <b>`$table`</b> : <b>($names)</b>");
+				$displayCallable('warning', 'Missing hashtag (manyToMany)', "Missing foreign keys for manyToMany with table <b>`$table`</b> : <b>($names)</b>");
 			}
 		}
 	}
-	
 }
