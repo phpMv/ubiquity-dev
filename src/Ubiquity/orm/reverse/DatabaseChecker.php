@@ -57,10 +57,12 @@ class DatabaseChecker {
 			$existingTables = $this->db->getTablesName();
 		}
 		$tables = Reflexion::getAllJoinTables($this->models);
-		foreach ($this->metadatas as $model => $metas) {
-			$tablename = $metas['#tableName'];
-			if (\array_search($tablename, $existingTables) === false && \array_search($tablename, $tables) === false) {
-				$tables[$model] = $tablename;
+		if (isset($this->metadatas)) {
+			foreach ($this->metadatas as $model => $metas) {
+				$tablename = $metas['#tableName'];
+				if (\array_search($tablename, $existingTables) === false && \array_search($tablename, $tables) === false) {
+					$tables[$model] = $tablename;
+				}
 			}
 		}
 		return \array_diff($tables, $existingTables);
