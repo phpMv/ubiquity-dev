@@ -1,7 +1,6 @@
 <?php
 namespace Ubiquity\orm\reverse;
 
-use Cassandra\Exception\ConfigurationException;
 use Ubiquity\db\reverse\DbGenerator;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
@@ -47,7 +46,7 @@ class DatabaseReversor {
 			}
 			throw new DBException("Wrapper class $wrapperClass does not exist!");
 		}
-		throw new ConfigurationException("Wrapper class is not set for database at offset $databaseOffset!");
+		throw new DBException("Wrapper class is not set for database at offset $databaseOffset!");
 	}
 
 	public function createDatabase(string $name, bool $createDb = true): void {
