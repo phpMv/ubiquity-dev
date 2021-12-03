@@ -24,7 +24,7 @@ class DatabaseChecker {
 
 	private $databaseExist;
 
-	private Database $db;
+	private ?Database $db;
 
 	private ?array $models = null;
 
@@ -46,7 +46,7 @@ class DatabaseChecker {
 		try {
 			$this->db = DAO::getDatabase($this->dbOffset);
 			return $this->databaseExist = isset($this->db) && $this->db->isConnected();
-		} catch (DAOException $e) {
+		} catch (\Error $e) {
 			return $this->databaseExist = false;
 		}
 	}
