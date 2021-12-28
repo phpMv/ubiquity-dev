@@ -11,11 +11,7 @@ class %controllerName% extends \Ubiquity\controllers\Controller {
 	
 	%route%
 	public function index() {
-		// Get Firewall instance from Shieldon Container.
-		$firewall = \Shieldon\Container::get('firewall');
-
-		// Get into the Firewall Panel.
-		$controlPanel = new \Shieldon\FirewallPanel($firewall);
+		$controlPanel = \Ubiquity\security\shieldon\ShieldonManager::createPanel('%routePath%');
 		%csrf%
 		$controlPanel->entry();
 	}
