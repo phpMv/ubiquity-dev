@@ -14,7 +14,7 @@ use Ubiquity\orm\parser\Reflexion;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.0
+ * @version 1.0.1
  * @package Ubiquity.dev
  *
  */
@@ -46,7 +46,7 @@ class DatabaseChecker {
 		try {
 			$this->db = DAO::getDatabase($this->dbOffset);
 			return $this->databaseExist = isset($this->db) && $this->db->isConnected();
-		} catch (\Error $e) {
+		} catch (\Exception | \Error $e) {
 			return $this->databaseExist = false;
 		}
 	}
