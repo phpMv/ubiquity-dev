@@ -2,9 +2,8 @@
 %namespace%
 
 %uses%
-use Ubiquity\controllers\seo\SeoController;
 
-class %controllerName% extends SeoController {
+class %controllerName% extends \Ubiquity\controllers\seo\SeoController {
 
 	public function __construct(){
 		parent::__construct();
