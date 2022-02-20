@@ -5,7 +5,7 @@
 %route%
 class %controllerName% extends %baseClass%{
 
-	public function _getBaseRoute() {
+	public function _getBaseRoute(): string {
 		return '%routePath%';
 	}
 	

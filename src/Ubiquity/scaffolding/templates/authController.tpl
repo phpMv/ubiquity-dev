@@ -32,11 +32,11 @@ class %controllerName% extends %baseClass%{
 	 * {@inheritDoc}
 	 * @see \Ubiquity\controllers\auth\AuthController::isValidUser()
 	 */
-	public function _isValidUser($action=null) {
+	public function _isValidUser($action=null): bool {
 		return USession::exists($this->_getUserSessionKey());
 	}
 
-	public function _getBaseRoute() {
+	public function _getBaseRoute(): string {
 		return '%routePath%';
 	}
 	
