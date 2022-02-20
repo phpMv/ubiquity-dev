@@ -13,7 +13,7 @@ class %classname% extends %extendsOrImplements% {
 	 * {@inheritdoc}
 	 * @see \Ubiquity\mailer\AbstractMail::bodyText()
 	 */
-	public function bodyText() {
+	public function bodyText():string {
 		return 'Message text';
 	}
 
@@ -33,7 +33,7 @@ class %classname% extends %extendsOrImplements% {
 	 * {@inheritdoc}
 	 * @see \Ubiquity\mailer\AbstractMail::body()
 	 */
-	public function body() {
+	public function body():string {
 		return '<h1>Message body</h1>';
 	}
 }
