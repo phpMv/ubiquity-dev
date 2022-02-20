@@ -33,7 +33,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator {
 				$ns = CacheManager::getModelsNamespace($aDb);
 				$routeNamePrefix .= $aDb . '.';
 				if (isset($ns)) {
-					$classContent .= $scaffoldController->_createMethod('protected', 'getModelName', '', '', "\t\treturn '" . $ns . "\\\\'.\ucfirst(\$this->resource);");
+					$classContent .= $scaffoldController->_createMethod('protected', 'getModelName', '', ': string ', "\t\treturn '" . $ns . "\\\\'.\ucfirst(\$this->resource);");
 					$classContent .= $scaffoldController->_createMethod('protected', 'getIndexModels', '', ': array ', "\t\treturn \Ubiquity\orm\DAO::getModels('" . $aDb . "');");
 					$initializeContent .= "\n\t\t\Ubiquity\orm\DAO::start();";
 				}
@@ -69,7 +69,7 @@ class IndexCrudControllerCreator extends CrudControllerCreator {
 			'%baseClass%' => "\\Ubiquity\\controllers\\crud\\MultiResourceCRUDController",
 			'%content%' => $classContent
 		], $this->templateName);
-		echo implode("\n", $messages);
+		echo \implode("\n", $messages);
 	}
 
 	protected function getHome($path) {
