@@ -12,7 +12,7 @@ class %controllerName% extends %baseClass%{
 		$this->style='%style%';
 	}
 
-	public function _getBaseRoute() {
+	public function _getBaseRoute(): string {
 		return '%routePath%';
 	}
 	
