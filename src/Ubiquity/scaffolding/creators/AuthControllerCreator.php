@@ -26,12 +26,21 @@ class AuthControllerCreator extends BaseControllerCreator {
 	public function create(ScaffoldController $scaffoldController) {
 		$this->scaffoldController = $scaffoldController;
 		$classContent = '';
-		if ($this->baseClass == "\\Ubiquity\\controllers\\auth\\AuthController") {
+		$rClass=new \ReflectionClass($this->baseClass);
+		if ($rClass->isAbstract()) {
 			$controllerTemplate = "authController.tpl";
 			$this->uses = [
 				"Ubiquity\\utils\\http\\USession" => true,
 				"Ubiquity\\utils\\http\\URequest" => true
 			];
+			if($this->baseClass=='\\Ubiquity\\controllers\\auth\\AuthControllerConfig'){
+				$filename=\lcfirst($this->controllerName);
+				$classContent.=$scaffoldController->_createMethod('protected','getConfigFilename','',': string ',"\t\treturn '$filename';");
+				$completeClassname = $this->controllerNS . "auth\\".$this->controllerName;
+				if(\method_exists($this->baseClass,'init')){
+					\call_user_func($this->baseClass."::init",$filename);
+				}
+			}
 		} else {
 			$controllerTemplate = 'authController_.tpl';
 		}

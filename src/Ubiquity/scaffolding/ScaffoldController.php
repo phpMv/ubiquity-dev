@@ -55,7 +55,9 @@ abstract class ScaffoldController {
 			"create" => "@framework/auth/create.html",
 			"stepTwo" => "@framework/auth/stepTwo.html",
 			"badTwoFACode" => "@framework/auth/badTwoFACode.html",
-			"baseTemplate" => "@framework/auth/baseTemplate.html"
+			"baseTemplate" => "@framework/auth/baseTemplate.html",
+			"initRecovery" => "@framework/auth/initRecovery.html",
+			"recovery" => "@framework/auth/recovery.html"
 		]
 	];
 
