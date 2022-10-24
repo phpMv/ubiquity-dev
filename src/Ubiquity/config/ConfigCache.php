@@ -20,7 +20,7 @@ class ConfigCache {
 		$app_env=self::loadActiveEnv();
 		$config=self::loadMainConfig();
 		$config=self::addArrayToConfig($config,$app_env);
-		return self::saveConfig($config);
+		return self::saveConfig($config,'config.cache');
 	}
 
 	public static function loadMainConfig(){
