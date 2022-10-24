@@ -10,12 +10,12 @@ use Ubiquity\utils\base\UFileSystem;
 
 class ConfigCache {
 
-	private const CONFIG_CACHE_LOCATION='cache/config/config.php';
+	private const CONFIG_CACHE_LOCATION='cache/config/';
 
 	private static function addArrayToConfig(array $config, string $env): ?array {
 		return \array_replace_recursive($config,self::loadConfig($env));
 	}
-	
+
 	public static function generateCache(){
 		$app_env=self::loadActiveEnv();
 		$config=self::loadMainConfig();
@@ -28,7 +28,7 @@ class ConfigCache {
 	}
 
 	public static function loadConfigCache(){
-		return include \ROOT.self::CONFIG_CACHE_LOCATION;
+		return include \ROOT.self::CONFIG_CACHE_LOCATION.'config.php';
 	}
 
 	public static function loadConfig($env): array {
@@ -58,9 +58,7 @@ class ConfigCache {
 		UFileSystem::safeMkdir($dir);
 		$content = "<?php\nreturn " . UArray::asPhpArray ( $contentArray, 'array', 1, true ) . ";";
 		if (CodeUtils::isValidCode ( $content )) {
-			if (! \file_exists ( $filename )) {
-				return UFileSystem::save ( $filename, $content );
-			}
+			return UFileSystem::save ( $filename, $content );
 		} else {
 			throw new InvalidCodeException ( 'Config contains invalid code' );
 		}
