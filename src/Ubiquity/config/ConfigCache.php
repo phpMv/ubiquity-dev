@@ -52,6 +52,17 @@ class ConfigCache {
 		EnvFile::load(\ROOT,".env.$appEnv.local");
 	}
 
+	public static function loadConfigWithoutEval(string $filename='config'): array{
+		$originalContent=\file_get_contents(\ROOT."config/$filename.php");
+		$content=\preg_replace('/getenv\(\'(.*?)\'\)/','"getenv(\'$1\')"',$originalContent);
+		$content=\preg_replace('/getenv\(\"(.*?)\"\)/',"'getenv(\"\$1\")'",$content);
+		$temp = \tmpfile();
+		\fwrite($temp, $content);
+		$content= include \stream_get_meta_data($temp)['uri'];
+		\fclose($temp);
+		return $content;
+	}
+
 	public static function saveConfig(array $contentArray,string $configFilename='config') {
 		$filename = \ROOT .static::CONFIG_CACHE_LOCATION. "$configFilename.php";
 		$dir=\dirname($filename);
@@ -59,10 +70,8 @@ class ConfigCache {
 		$content = "<?php\nreturn " . UArray::asPhpArray ( $contentArray, 'array', 1, true ) . ";";
 		if (CodeUtils::isValidCode ( $content )) {
 			return UFileSystem::save ( $filename, $content );
-		} else {
-			throw new InvalidCodeException ( 'Config contains invalid code' );
 		}
-		return false;
+		throw new InvalidCodeException ( 'Config contains invalid code' );
 	}
 
 }
