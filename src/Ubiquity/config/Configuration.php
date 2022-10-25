@@ -62,6 +62,12 @@ class Configuration {
 		EnvFile::load($envRoot,".env.$appEnv.local");
 	}
 
+	public function getTheoreticalLoadedConfigFiles():array{
+		$appEnv=getenv('APP_ENV')??'dev';
+		$envRoot=EnvFile::$ENV_ROOT;
+		return [$envRoot.'.env',$envRoot.'.env.local',$envRoot.".env.$appEnv",$envRoot.".env.$appEnv.local",\ROOT.'config'.DS.'config.php',\ROOT.'config'.\DS.'config-'.$appEnv.'.php'];
+	}
+
 	public static function loadConfigWithoutEval(string $filename='config'): array{
 		$origContent=\file_get_contents(\ROOT."config/$filename.php");
 		$result=\preg_replace('/getenv\(\'(.*?)\'\)/','"getenv(\'$1\')"',$origContent);
