@@ -53,14 +53,14 @@ class ConfigCache {
 	}
 
 	public static function loadConfigWithoutEval(string $filename='config'): array{
-		$originalContent=\file_get_contents(\ROOT."config/$filename.php");
-		$content=\preg_replace('/getenv\(\'(.*?)\'\)/','"getenv(\'$1\')"',$originalContent);
-		$content=\preg_replace('/getenv\(\"(.*?)\"\)/',"'getenv(\"\$1\")'",$content);
-		$temp = \tmpfile();
-		\fwrite($temp, $content);
-		$content= include \stream_get_meta_data($temp)['uri'];
-		\fclose($temp);
-		return $content;
+		$origContent=\file_get_contents(\ROOT."config/$filename.php");
+		$result=\preg_replace('/getenv\(\'(.*?)\'\)/','"getenv(\'$1\')"',$origContent);
+		$result=\preg_replace('/getenv\(\"(.*?)\"\)/',"'getenv(\"\$1\")'",$result);
+		$tmpFilename=\ROOT.'cache/config/tmp.cache.php';
+		if(\file_put_contents($tmpFilename,$result)) {
+			return include $tmpFilename;
+		}
+		return self::loadMainConfig();
 	}
 
 	public static function saveConfig(array $contentArray,string $configFilename='config') {
