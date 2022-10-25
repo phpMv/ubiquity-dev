@@ -40,15 +40,16 @@ class Configuration {
 	}
 
 	public static function loadActiveEnv(): string {
-		EnvFile::load(\ROOT);
-		EnvFile::load(\ROOT,'.env.local');
+		$envRoot=EnvFile::$ENV_ROOT;
+		EnvFile::load($envRoot);
+		EnvFile::load($envRoot,'.env.local');
 		$app_env=$_ENV['APP_ENV']??'dev';
 		self::loadEnv($app_env);
 		return $app_env;
 	}
 
 	public static function getEnvFiles(): array{
-		return UFileSystem::glob_recursive(\ROOT.'../.env*');
+		return UFileSystem::glob_recursive(EnvFile::$ENV_ROOT.'.env*');
 	}
 
 	public static function getConfigFiles(): array{
@@ -56,8 +57,9 @@ class Configuration {
 	}
 
 	public static function loadEnv($appEnv='dev'){
-		EnvFile::load(\ROOT,".env.$appEnv");
-		EnvFile::load(\ROOT,".env.$appEnv.local");
+		$envRoot=EnvFile::$ENV_ROOT;
+		EnvFile::load($envRoot,".env.$appEnv");
+		EnvFile::load($envRoot,".env.$appEnv.local");
 	}
 
 	public static function loadConfigWithoutEval(string $filename='config'): array{
