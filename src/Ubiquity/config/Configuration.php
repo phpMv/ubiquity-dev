@@ -47,6 +47,14 @@ class Configuration {
 		return $app_env;
 	}
 
+	public static function getEnvFiles(): array{
+		return UFileSystem::glob_recursive(\ROOT.'../.env*');
+	}
+
+	public static function getConfigFiles(): array{
+		return UFileSystem::glob_recursive(\ROOT.'config/config*.php*');
+	}
+
 	public static function loadEnv($appEnv='dev'){
 		EnvFile::load(\ROOT,".env.$appEnv");
 		EnvFile::load(\ROOT,".env.$appEnv.local");
