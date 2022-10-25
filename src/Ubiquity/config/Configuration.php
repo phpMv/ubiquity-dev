@@ -53,7 +53,7 @@ class Configuration {
 	}
 
 	public static function getConfigFiles(): array{
-		return UFileSystem::glob_recursive(\ROOT.'config/config*.php*');
+		return UFileSystem::glob_recursive(\ROOT.'config'.\DS.'config*.php');
 	}
 
 	public static function loadEnv($appEnv='dev'){
