@@ -8,6 +8,10 @@ use Ubiquity\utils\base\CodeUtils;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\base\UFileSystem;
 
+/**
+ * Class Configuration
+ * @package Ubiquity\config
+ */
 class Configuration {
 
 	private const CONFIG_CACHE_LOCATION='cache/config/';

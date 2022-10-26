@@ -8,10 +8,18 @@ use Dotenv\Dotenv;
 use Ubiquity\utils\base\UFileSystem;
 use Ubiquity\utils\base\UString;
 
+/**
+ * Class EnvFile
+ * @package Ubiquity\config
+ */
 class EnvFile {
 
 	public static  string $ENV_ROOT=\ROOT.'../';
 
+	/**
+	 * @param $v
+	 * @return int|string
+	 */
 	private static function parseValue($v) {
 		if (\is_numeric($v)) {
 			$result = $v;
@@ -23,7 +31,15 @@ class EnvFile {
 		return $result;
 	}
 
-	public static function save(array $content,?string $path=null, string $filename='.env'){
+	/**
+	 * Saves a content array on disk.
+	 *
+	 * @param array $content
+	 * @param string|null $path
+	 * @param string $filename
+	 * @return false|int
+	 */
+	public static function save(array $content,?string $path=null, string $filename='.env') {
 		$result=[];
 		$path??=self::$ENV_ROOT;
 		foreach ($content as $k=>$v){
@@ -33,13 +49,41 @@ class EnvFile {
 		return UFileSystem::save($path.$filename,$result);
 	}
 
-	public static function addAndSave(array $content,?string $path=null, string $filename='.env'){
+	/**
+	 * Savec a content text on disk.
+	 *
+	 * @param string $textContent
+	 * @param string|null $path
+	 * @param string $filename
+	 * @return false|int
+	 */
+	public static function saveText(string $textContent,?string $path=null, string $filename='.env') {
+		$path??=self::$ENV_ROOT;
+		return UFileSystem::save($path.$filename,$textContent);
+	}
+
+	/**
+	 * Adds a content array to an existing env file and saves it to disk.
+	 *
+	 * @param array $content
+	 * @param string|null $path
+	 * @param string $filename
+	 * @return false|int
+	 */
+	public static function addAndSave(array $content,?string $path=null, string $filename='.env') {
 		$path??=self::$ENV_ROOT;
 		$result=self::load($path,$filename);
 		$result=\array_replace_recursive($result,$content);
 		return self::save($result,$path,$filename);
 	}
 
+	/**
+	 * Loads an env file an returns an array of key/value pairs.
+	 *
+	 * @param string|null $path
+	 * @param string $filename
+	 * @return array
+	 */
 	public static function load(?string $path=null, string $filename='.env'): array {
 		$path??=self::$ENV_ROOT;
 		if(\file_exists($path.$filename)) {
