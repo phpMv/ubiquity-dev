@@ -69,7 +69,7 @@ class Configuration {
 			$envRoot.'.env',
 			$envRoot.'.env.local',
 			$envRoot.'.env.'.$appEnv,
-			$envRoot.'.env.'.$appEnv.'local',
+			$envRoot.'.env.'.$appEnv.'.local',
 			\ROOT.'config'.DS.'config.php',
 			\ROOT.'config'.\DS.'config-'.$appEnv.'.php'
 		]);
