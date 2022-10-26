@@ -37,7 +37,7 @@ class Configuration {
 	}
 
 	public static function loadConfigCache(){
-		return include \ROOT.self::CONFIG_CACHE_LOCATION.'config.php';
+		return include \ROOT.self::CONFIG_CACHE_LOCATION.'config.cache.php';
 	}
 
 	public static function loadConfig($env): array {
