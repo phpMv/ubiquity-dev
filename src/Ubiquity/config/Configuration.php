@@ -65,7 +65,7 @@ class Configuration {
 	public static function getTheoreticalLoadedConfigFiles():array{
 		$appEnv=getenv('APP_ENV')??'dev';
 		$envRoot=EnvFile::$ENV_ROOT;
-		return [$envRoot.'.env',$envRoot.'.env.local',$envRoot.".env.$appEnv",$envRoot.".env.$appEnv.local",\ROOT.'config'.DS.'config.php',\ROOT.'config'.\DS.'config-'.$appEnv.'.php'];
+		return \array_map('realpath',[$envRoot.'.env',$envRoot.'.env.local',$envRoot.".env.$appEnv",$envRoot.".env.$appEnv.local",\ROOT.'config'.DS.'config.php',\ROOT.'config'.\DS.'config-'.$appEnv.'.php']);
 	}
 
 	public static function loadConfigWithoutEval(string $filename='config'): array{
