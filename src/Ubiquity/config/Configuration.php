@@ -3,6 +3,7 @@
 
 namespace Ubiquity\config;
 
+use Ubiquity\core\Framework;
 use Ubiquity\exceptions\InvalidCodeException;
 use Ubiquity\utils\base\CodeUtils;
 use Ubiquity\utils\base\UArray;
@@ -20,12 +21,15 @@ class Configuration {
 		return \array_replace_recursive($config,self::loadConfig($env));
 	}
 
-	public static function generateCache(){
+	private static function generateConfig(): array {
 		$app_env=self::loadActiveEnv();
 		$config=self::loadMainConfig();
-		$config=self::addArrayToConfig($config,$app_env);
 		$config['app.env']=$app_env;
-		return self::saveConfig($config,'config.cache');
+		return self::addArrayToConfig($config,$app_env);
+	}
+
+	public static function generateCache(){
+		return self::saveConfig(self::generateConfig(),'config.cache');
 	}
 
 	public static function loadMainConfig(){
@@ -51,6 +55,16 @@ class Configuration {
 		$app_env=$_ENV['APP_ENV']??'dev';
 		self::loadEnv($app_env);
 		return $app_env;
+	}
+
+	public static function hasEnvChanged(): bool {
+		return Framework::getEnv()!==self::loadActiveEnv();
+	}
+
+	public static function isConfigUpdated(): bool {
+		$cachedConfig=self::loadConfigCache();
+		$newConfig=self::generateConfig();
+		return $cachedConfig!=$newConfig;
 	}
 
 	public static function getEnvFiles(): array{
