@@ -64,7 +64,7 @@ class Configuration {
 	public static function isConfigUpdated(): bool {
 		$cachedConfig=self::loadConfigCache();
 		$newConfig=self::generateConfig();
-		return $cachedConfig!=$newConfig;
+		return UArray::asPhpArray($cachedConfig)!=UArray::asPhpArray($newConfig);
 	}
 
 	public static function getEnvFiles(): array{
