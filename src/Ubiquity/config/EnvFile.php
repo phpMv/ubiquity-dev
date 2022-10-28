@@ -91,5 +91,13 @@ class EnvFile {
 		}
 		return [];
 	}
+	
+	public static function loadContent(?string $path=null, string $filename='.env'): string {
+		$path??=self::$ENV_ROOT;
+		if(\file_exists($path.$filename)) {
+			return \file_get_contents($path.$filename);
+		}
+		return '';
+	}
 
 }

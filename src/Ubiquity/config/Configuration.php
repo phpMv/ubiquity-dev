@@ -94,14 +94,17 @@ class Configuration {
 	}
 
 	public static function loadConfigWithoutEval(string $filename='config'): array{
-		$origContent=\file_get_contents(\ROOT."config/$filename.php");
-		$result=\preg_replace('/getenv\(\'(.*?)\'\)/','"getenv(\'$1\')"',$origContent);
-		$result=\preg_replace('/getenv\(\"(.*?)\"\)/',"'getenv(\"\$1\")'",$result);
-		$tmpFilename=\ROOT.'cache/config/tmp.cache.php';
-		if(\file_put_contents($tmpFilename,$result)) {
-			return include $tmpFilename;
+		if(file_exists(\ROOT."config/$filename.php")) {
+			$origContent = \file_get_contents(\ROOT . "config/$filename.php");
+			$result = \preg_replace('/getenv\(\'(.*?)\'\)/', '"getenv(\'$1\')"', $origContent);
+			$result = \preg_replace('/getenv\(\"(.*?)\"\)/', "'getenv(\"\$1\")'", $result);
+			$tmpFilename = \ROOT . 'cache/config/tmp.cache.php';
+			if (\file_put_contents($tmpFilename, $result)) {
+				return include $tmpFilename;
+			}
+			return self::loadMainConfig();
 		}
-		return self::loadMainConfig();
+		return [];
 	}
 
 	public static function saveConfig(array $contentArray,string $configFilename='config') {
