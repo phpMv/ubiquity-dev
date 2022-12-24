@@ -16,7 +16,7 @@ class ClassCreator {
 	private string $classContent;
 
 	private function getTemplateDir() {
-		return \dirname(__DIR__) . "/scaffolding/templates/";
+		return \dirname(__DIR__) . "/templates/";
 	}
 
 	public function __construct($classname,$uses,$namespace,$extendsOrImplements='',$classContent=''){
@@ -44,7 +44,7 @@ class ClassCreator {
 		$directory = UFileSystem::getDirFromNamespace($this->namespace);
 		UFileSystem::safeMkdir($directory);
 		$filename = UFileSystem::cleanFilePathname($directory . \DS . $this->classname . '.php');
-		if (! file_exists($filename)) {
+		if (! \file_exists($filename)) {
 			UFileSystem::openReplaceWriteFromTemplateFile($templateDir . $this->template, $filename, $variables);
 			return true;
 		}
