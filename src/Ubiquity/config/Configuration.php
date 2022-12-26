@@ -18,25 +18,30 @@ class Configuration {
 	private const CONFIG_CACHE_LOCATION='cache/config/';
 
 	private static function addArrayToConfig(array $config, string $env): ?array {
-		return \array_replace_recursive($config,self::loadConfig($env));
+		return \array_replace_recursive($config, self::loadConfig($env));
 	}
 
 	private static function generateConfig(): array {
 		$app_env=self::loadActiveEnv();
 		$config=self::loadMainConfig();
 		$config['app.env']=$app_env;
-		return self::addArrayToConfig($config,$app_env);
+		return self::addArrayToConfig($config, $app_env);
 	}
 
-	public static function generateCache(){
-		return self::saveConfig(self::generateConfig(),'config.cache');
+	public static function generateCache(bool $silent=false) {
+		$config = self::saveConfig(self::generateConfig(),'config.cache');
+		if (!$silent) {
+			$folder = \basename(\ROOT.self::CONFIG_CACHE_LOCATION.'config.cache.php');
+			echo "Config cache generated in <b>$folder</b>";
+		}
+		return $config;
 	}
 
-	public static function loadMainConfig(){
+	public static function loadMainConfig() {
 		return include \ROOT.'config'.DS.'config.php';
 	}
 
-	public static function loadConfigCache(){
+	public static function loadConfigCache() {
 		return include \ROOT.self::CONFIG_CACHE_LOCATION.'config.cache.php';
 	}
 
@@ -75,7 +80,7 @@ class Configuration {
 		return UFileSystem::glob_recursive(\ROOT.'config'.\DS.'config*.php');
 	}
 
-	public static function loadEnv($appEnv='dev'){
+	public static function loadEnv($appEnv='dev'): void {
 		$envRoot=EnvFile::$ENV_ROOT;
 		EnvFile::load($envRoot,".env.$appEnv");
 		EnvFile::load($envRoot,".env.$appEnv.local");
@@ -94,7 +99,7 @@ class Configuration {
 	}
 
 	public static function loadConfigWithoutEval(string $filename='config'): array{
-		if(file_exists(\ROOT."config/$filename.php")) {
+		if (file_exists(\ROOT."config/$filename.php")) {
 			$origContent = \file_get_contents(\ROOT . "config/$filename.php");
 			$result = \preg_replace('/getenv\(\'(.*?)\'\)/', '"getenv(\'$1\')"', $origContent);
 			$result = \preg_replace('/getenv\(\"(.*?)\"\)/', "'getenv(\"\$1\")'", $result);
@@ -107,15 +112,18 @@ class Configuration {
 		return [];
 	}
 
-	public static function saveConfig(array $contentArray,string $configFilename='config') {
+	/**
+	 * @throws InvalidCodeException
+	 */
+	public static function saveConfig(array $contentArray, string $configFilename='config') {
 		$filename = \ROOT .static::CONFIG_CACHE_LOCATION. "$configFilename.php";
 		$dir=\dirname($filename);
 		UFileSystem::safeMkdir($dir);
-		$content = "<?php\nreturn " . UArray::asPhpArray ( $contentArray, 'array', 1, true ) . ";";
-		if (CodeUtils::isValidCode ( $content )) {
-			return UFileSystem::save ( $filename, $content );
+		$content = "<?php\nreturn " . UArray::asPhpArray($contentArray, 'array', 1, true) . ";";
+		if (CodeUtils::isValidCode($content)) {
+			return UFileSystem::save($filename, $content);
 		}
-		throw new InvalidCodeException ( 'Config contains invalid code' );
+		throw new InvalidCodeException('Config contains invalid code');
 	}
 
 }
