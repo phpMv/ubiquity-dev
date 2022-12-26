@@ -31,7 +31,7 @@ class Configuration {
 	public static function generateCache(bool $silent=false) {
 		$config = self::saveConfig(self::generateConfig(),'config.cache');
 		if (!$silent) {
-			$folder = \basename(\ROOT.self::CONFIG_CACHE_LOCATION.'config.cache.php');
+			$folder = \dirname(\ROOT.self::CONFIG_CACHE_LOCATION.'config.cache.php');
 			echo "Config cache generated in <b>$folder</b>";
 		}
 		return $config;
