@@ -101,7 +101,7 @@ class DatabaseReversor {
 			return;
 		}
 		$tablesToCreate = $checker->getNonExistingTables();
-		if (! \empty($tablesToCreate)) {
+		if (\count($tablesToCreate)>0) {
 			$this->generator->setTablesToCreate($tablesToCreate);
 			$this->createDatabase($dbName, false);
 		}
@@ -124,21 +124,21 @@ class DatabaseReversor {
 				$this->generator->modifyField($updatedField['table'],$updatedField['name'],$updatedField['attributes']);
 			}
 			$missingPks=$checker->checkPrimaryKeys($model);
-			if (! \empty($missingPks)) {
+			if (\count($missingPks)>0) {
 				$pks=$missingPks['primaryKeys'];
 				$tablereversor->addPrimaryKeys($this->generator,$pks);
 			}
 			$missingFks=$checker->checkManyToOne($model);
-			if(! \empty($missingFks)){
+			if (\count($missingFks)>0){
 				foreach ($missingFks as $fk){
 					$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
 				}
 			}
 
 			$missingFks=$checker->checkManyToMany($model);
-			if(! \empty($missingFks)){
+			if (\count($missingFks)>0){
 				foreach ($missingFks as $fk){
-					if(!$this->generator->hasToCreateTable($fk['table'])) {
+					if (!$this->generator->hasToCreateTable($fk['table'])) {
 						$this->checkManyToManyFields($checker, $fk['table'], $fk['column'],$newMissingPks);
 						$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
 					}
@@ -156,7 +156,7 @@ class DatabaseReversor {
 		if (!isset($originalFieldInfos[$field])) {
 			$this->generator->addField($table, $field, ['type' => 'int']);
 		}
-		if(!in_array($field, $pks)){
+		if(\array_search($field,$pks)===false){
 			$newMissingPks[$table][]=$field;
 		}
 	}
