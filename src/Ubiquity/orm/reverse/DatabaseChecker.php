@@ -14,7 +14,7 @@ use Ubiquity\orm\parser\Reflexion;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.1
+ * @version 1.0.2
  * @package Ubiquity.dev
  *
  */
@@ -72,7 +72,7 @@ class DatabaseChecker {
 		return $this->nonExistingTables ??= $this->getNonExistingTables();
 	}
 
-	protected function tableExists(string $table): bool {
+	public function tableExists(string $table): bool {
 		return \array_search($table, $this->_getNonExistingTables()) === false;
 	}
 

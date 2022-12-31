@@ -4,6 +4,7 @@ namespace Ubiquity\orm\reverse;
 use Ubiquity\db\reverse\DbGenerator;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\db\SqlCommand;
 use Ubiquity\db\utils\DbTypes;
 use Ubiquity\exceptions\DBException;
 use Ubiquity\orm\DAO;
@@ -16,7 +17,7 @@ use Ubiquity\exceptions\UbiquityException;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.4
+ * @version 1.0.5
  * @package Ubiquity.dev
  *
  */
@@ -28,11 +29,12 @@ class DatabaseReversor {
 
 	private $models;
 
-	private $databaseMetas;
+	private $dbOffset;
 
 	public function __construct(DbGenerator $generator, $databaseOffset = 'default') {
 		$this->generator = $generator;
 		$this->database = $databaseOffset;
+		$this->dbOffset=$databaseOffset;
 		$config=Startup::$config;
 		$this->generator->setDatabaseWrapper($this->getWrapperInstance($config,$databaseOffset));
 	}
@@ -68,6 +70,18 @@ class DatabaseReversor {
 		}
 		$this->generator->generateManyToManys();
 	}
+	
+	public function generateTablesForModels(?array $models=null,bool $execute=false): bool {
+		if (isset($models)) {
+			$this->setModels($models);
+		}
+		$this->createDatabase('', false);
+		if ($execute) {
+			$script=\implode(';', $this->getScript());
+			return SqlCommand::executeSQLTransaction($this->dbOffset,$script);
+		}
+		return true;
+	}
 
 	private function getDbName(): ?string {
 		$config = Startup::$config;
@@ -87,7 +101,7 @@ class DatabaseReversor {
 			return;
 		}
 		$tablesToCreate = $checker->getNonExistingTables();
-		if (\count($tablesToCreate) > 0) {
+		if (! \empty($tablesToCreate)) {
 			$this->generator->setTablesToCreate($tablesToCreate);
 			$this->createDatabase($dbName, false);
 		}
@@ -110,19 +124,19 @@ class DatabaseReversor {
 				$this->generator->modifyField($updatedField['table'],$updatedField['name'],$updatedField['attributes']);
 			}
 			$missingPks=$checker->checkPrimaryKeys($model);
-			if(\count($missingPks)>0){
+			if (! \empty($missingPks)) {
 				$pks=$missingPks['primaryKeys'];
 				$tablereversor->addPrimaryKeys($this->generator,$pks);
 			}
 			$missingFks=$checker->checkManyToOne($model);
-			if(\count($missingFks)>0){
+			if(! \empty($missingFks)){
 				foreach ($missingFks as $fk){
 					$this->generator->addForeignKey($fk['table'], $fk['column'], $fk['fkTable'], $fk['fkId']);
 				}
 			}
 
 			$missingFks=$checker->checkManyToMany($model);
-			if(\count($missingFks)>0){
+			if(! \empty($missingFks)){
 				foreach ($missingFks as $fk){
 					if(!$this->generator->hasToCreateTable($fk['table'])) {
 						$this->checkManyToManyFields($checker, $fk['table'], $fk['column'],$newMissingPks);
@@ -142,7 +156,7 @@ class DatabaseReversor {
 		if (!isset($originalFieldInfos[$field])) {
 			$this->generator->addField($table, $field, ['type' => 'int']);
 		}
-		if(\array_search($field,$pks)===false){
+		if(!in_array($field, $pks)){
 			$newMissingPks[$table][]=$field;
 		}
 	}
