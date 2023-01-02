@@ -166,6 +166,9 @@ class Model {
 
 	public function addMainAnnots() {
 		$annots = [];
+		if (\class_exists('\AllowDynamicProperties')) {
+			$annots[]='#[\AllowDynamicProperties()]';
+		}
 		if ($this->database != null && $this->database !== 'default') {
 			$annots[] = $this->annotsEngine->getAnnotation($this, 'database', [
 				'name' => $this->database
