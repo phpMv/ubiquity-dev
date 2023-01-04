@@ -4,31 +4,35 @@
 namespace Ubiquity\scaffolding\creators;
 
 
+use Ubiquity\creator\HasUsesTrait;
 use Ubiquity\utils\base\UFileSystem;
 use Ubiquity\utils\base\UString;
 
 class ClassCreator {
+	use HasUsesTrait;
+	
 	private string $template;
 	private string $classname;
 	private string $namespace;
-	private string $uses;
 	private string $extendsOrImplements;
 	private string $classContent;
+	private array $classAttributes;
 
 	private function getTemplateDir() {
 		return \dirname(__DIR__) . "/templates/";
 	}
 
-	public function __construct($classname,$uses,$namespace,$extendsOrImplements='',$classContent=''){
+	public function __construct($classname, $namespace, $extendsOrImplements='', $classContent='') {
 		$this->classname=$classname;
-		$this->uses=$uses;
 		$this->namespace=$namespace;
 		$this->extendsOrImplements=$extendsOrImplements;
 		$this->classContent=$classContent;
 		$this->template='class.tpl';
+		$this->classAttributes=[];
+		$this->uses=[];
 	}
 
-	public function generate():bool{
+	public function generate(): bool {
 		$namespaceVar = '';
 		if (UString::isNotNull($this->namespace)) {
 			$namespaceVar = "namespace {$this->namespace};";
@@ -36,9 +40,10 @@ class ClassCreator {
 		$variables = [
 			'%classname%' => $this->classname,
 			'%namespace%' => $namespaceVar,
-			'%uses%' => $this->uses,
+			'%uses%' => $this->getUsesStr(),
 			'%extendsOrImplements%' => $this->extendsOrImplements,
-			'%classContent%' => $this->classContent
+			'%classContent%' => $this->classContent,
+			'%classAttributes%'=>\implode("\n", $this->classAttributes)
 		];
 		$templateDir = $this->getTemplateDir();
 		$directory = UFileSystem::getDirFromNamespace($this->namespace);
@@ -63,5 +68,9 @@ class ClassCreator {
 	 */
 	public function setTemplate(string $template): void {
 		$this->template = $template;
+	}
+	
+	public function addClassAttribute($attribute) {
+		$this->classAttributes[]=$attribute;
 	}
 }

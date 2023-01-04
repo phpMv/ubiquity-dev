@@ -1,9 +1,10 @@
 <?php
 %namespace%
+
 %uses%
 
 %route%
-class %controllerName% extends %baseClass%{
+class %controllerName% extends %baseClass% {
 
 	public function __construct(){
 		parent::__construct();

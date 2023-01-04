@@ -1,4 +1,4 @@
-%comment%	%access% function %name%(%parameters%)%return%{
+%comment%	%access% function %name%(%parameters%)%return% {
 %content%
 	}
 

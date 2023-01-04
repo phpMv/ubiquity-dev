@@ -1,9 +1,12 @@
 <?php
 %namespace%
+
 %uses%
- /**
-  * Class %classname%
-  */
-class %classname% %extendsOrImplements%{
+
+/**
+ * Class %classname%
+ */
+%classAttributes%
+class %classname% %extendsOrImplements% {
 %classContent%
 }

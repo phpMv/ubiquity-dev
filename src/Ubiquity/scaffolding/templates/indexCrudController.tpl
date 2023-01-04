@@ -1,9 +1,10 @@
 <?php
 %namespace%
+
 %uses%
 
 %route%
-class %controllerName% extends %baseClass%{
+class %controllerName% extends %baseClass% {
 
 	%indexRoute%
 	public function index() {
@@ -12,7 +13,7 @@ class %controllerName% extends %baseClass%{
 
 
 	%homeRoute%
-	public function home(){
+	public function home() {
 		parent::home();
 	}
 

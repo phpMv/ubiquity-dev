@@ -1,9 +1,10 @@
 <?php
 %namespace%
+
 %uses%
 
 %route%
-class %controllerName% extends %baseClass%{
+class %controllerName% extends %baseClass% {
 
 	protected function onConnect($connected) {
 		$urlParts=$this->getOriginalURL();
