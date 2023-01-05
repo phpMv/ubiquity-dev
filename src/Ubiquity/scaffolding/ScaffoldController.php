@@ -173,7 +173,8 @@ abstract class ScaffoldController {
 			'%namespace%' => $namespaceVar,
 			'%uses%' => $uses,
 			'%extendsOrImplements%' => $extendsOrImplements,
-			'%classContent%' => $classContent
+			'%classContent%' => $classContent,
+			'%classAttributes%'=>''
 		];
 		$templateDir = $this->getTemplateDir();
 		$directory = UFileSystem::getDirFromNamespace($namespace);
