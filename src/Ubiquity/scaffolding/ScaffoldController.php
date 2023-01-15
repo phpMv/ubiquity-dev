@@ -359,8 +359,8 @@ abstract class ScaffoldController {
 		}
 		if (isset($content)) {
 			$strContent=\implode('', $content);
-			if (\method_exists($teInstance,'parseFromTwig')) {
-				$strContent=$teInstance->parseFromTwig($strContent);
+			if (\method_exists($teInstance,'generateTemplateSource')) {
+				$strContent=$teInstance->generateTemplateSource($strContent);
 			}
 			return UFileSystem::save($folder . \DS . $newName . '.html', $strContent);
 		}
