@@ -334,7 +334,7 @@ abstract class ScaffoldController {
 			if (isset($teInstance)) {
 				if ($useViewInheritance) {
 					$blocks = $teInstance->getBlockNames($frameworkName);
-					if (sizeof($blocks) > 0) {
+					if (count($blocks) > 0) {
 						$content = [
 							"{% extends \"" . $frameworkName . "\" %}\n"
 						];
@@ -358,7 +358,11 @@ abstract class ScaffoldController {
 			];
 		}
 		if (isset($content)) {
-			return UFileSystem::save($folder . \DS . $newName . '.html', implode('', $content));
+			$strContent=\implode('', $content);
+			if (\method_exists($teInstance,'parseFromTwig')) {
+				$strContent=$teInstance->parseFromTwig($strContent);
+			}
+			return UFileSystem::save($folder . \DS . $newName . '.html', $strContent);
 		}
 	}
 
