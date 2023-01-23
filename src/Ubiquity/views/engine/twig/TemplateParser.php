@@ -23,7 +23,7 @@ class TemplateParser {
 	}
 
 	private function parseForeach(string $foreachStr): array {
-		$parts = \explode('in', $foreachStr);
+		$parts = \explode(' in ', $foreachStr);
 		$kv = explode(',', $parts[0]);
 		$v = \trim($parts[0]);
 		$k = null;
