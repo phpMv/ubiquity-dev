@@ -12,6 +12,7 @@ Ubiquity Framework, devtools & webtools compatibility
 
 | Framework | devtools | webtools | Ubiquity-dev |
 | --------- | -------- | -------- | ------------ |
+| 2.5.2     | 1.4.8    | 2.5.4    | 0.1.41       |
 | 2.5.1     | 1.4.3    | 2.5.2    | 0.1.37       |
 | 2.5.0     | 1.4.0    | 2.5.0    | 0.1.33       |
 | 2.4.11    | 1.3.9    | 2.4.14   | 0.1.32       |
