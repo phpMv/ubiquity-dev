@@ -11,7 +11,7 @@ use Ubiquity\orm\comparator\ClassMerger;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.7
+ * @version 1.0.8
  * @category ubiquity.dev
  *
  */
@@ -304,12 +304,14 @@ class Model {
 
 	private function getToStringField() {
 		$result = null;
-
 		foreach ($this->members as $member) {
-			if ($member->getDbType() !== 'mixed' && $member->isNullable() !== true && ! $member->isPrimary()) {
+			if ($member->getDbType() !== 'mixed' && ! $member->isPrimary()) {
 				$memberName = $member->getName();
 				if (! $member->isPassword()) {
-					$result = $memberName;
+					$result= $memberName;
+					if($member->isNullable()!==false){
+						return $result;
+					}
 				}
 			}
 		}
