@@ -1,1 +1,1 @@
-\Ubiquity\security\csrf\CsrfManager::start();
+\Ubiquity\security\csrf\CsrfManager::startProd();
